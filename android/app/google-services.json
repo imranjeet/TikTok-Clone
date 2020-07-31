@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "324676778108",
+    "firebase_url": "https://agni-adb21.firebaseio.com",
+    "project_id": "agni-adb21",
+    "storage_bucket": "agni-adb21.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324676778108:android:a56ea04e8356a5b362f1f9",
+        "android_client_info": {
+          "package_name": "com.infous.agni_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324676778108-80p331s5jt1hekrr7jn5uni4sqi2ruie.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.infous.agni_app",
+            "certificate_hash": "a58e1fc6047119f6aca20e966ee3861a8e7f5f4b"
+          }
+        },
+        {
+          "client_id": "324676778108-oafrgetr7cciltg4d1lle4ghf58uidrl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAO8Z_Mi9Nq1cl1PKQ8LtrbKDcU8qZ9tg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324676778108-oafrgetr7cciltg4d1lle4ghf58uidrl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
