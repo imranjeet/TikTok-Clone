@@ -16,12 +16,19 @@ class Videos with ChangeNotifier {
     return [..._items];
   }
 
+  List<Video> videoById(int userId) {
+    // if (_showFavoritesOnly) {
+    //   return _items.where((prodItem) => prodItem.isFavorite).toList();
+    // }
+    return _items.where((video) => video.userId == userId).toList();
+  }
+
   // List<User> get userById {
   //   return _items.where((prodItem) => prodItem.isFavorite).toList();
   // }
 
-  Video videofindById(int id) {
-    return _items.firstWhere((vid) => vid.id == id);
+  List<Video> videofindById(int userId) {
+    return _items.where((vid) => vid.userId == userId);
   }
 
   // void showFavoritesOnly() {
@@ -38,14 +45,14 @@ class Videos with ChangeNotifier {
     const url = 'http://agni-api.infous.xyz/api/get-all-videos';
     try {
       final response = await http.get(url);
-      // print(json.decode(response.body));
+      print(json.decode(response.body));
       final extractedData = json.decode(response.body);
       final List<Video> loadedVideos = [];
       extractedData['data'].forEach((videoData) {
         loadedVideos.add(Video(
           id: videoData['id'],
           userId: videoData['userId'],
-          discription: videoData['discription'],
+          description: videoData['description'],
           videoUrl: videoData['video_url'],
           thumbnail: videoData['thumbnail'],
           like: videoData['videoLike'],
@@ -63,8 +70,8 @@ class Videos with ChangeNotifier {
     }
   }
 
-  // Future<void> addUser(User user) async {
-  //   const url = 'https://flutter-update.firebaseio.com/products.json';
+  // Future<void> addVideo(User user) async {
+  //   const url = 'http://agni-api.infous.xyz/api/';
   //   try {
   //     final response = await http.post(
   //       url,
@@ -82,7 +89,7 @@ class Videos with ChangeNotifier {
   //       password: user.password,
   //     );
   //     _items.add(newUser);
-  //     // _items.insert(0, newProduct); // at the start of the list
+  //     // _items.insert(0, newUser); // at the start of the list
   //     notifyListeners();
   //   } catch (error) {
   //     print(error);
@@ -90,10 +97,10 @@ class Videos with ChangeNotifier {
   //   }
   // }
 
-  // Future<void> updateProduct(String id, User newUser) async {
+  // Future<void> updateVideo(String id, User newUser) async {
   //   final userIndex = _items.indexWhere((prod) => prod.id == id);
   //   if (userIndex >= 0) {
-  //     final url = 'https://flutter-update.firebaseio.com/products/$id.json';
+  //     final url = 'http://agni-api.infous.xyz/api/';
   //     await http.patch(url,
   //         body: json.encode({
   //           'id': newUser.id,
@@ -108,8 +115,8 @@ class Videos with ChangeNotifier {
   //   }
   // }
 
-  // Future<void> deleteUser(String id) async {
-  //   final url = 'https://flutter-update.firebaseio.com/products/$id.json';
+  // Future<void> deleteVideo(String id) async {
+  //   final url = 'http://agni-api.infous.xyz/api/';
   //   final existingUserIndex = _items.indexWhere((usr) => usr.id == id);
   //   var existingUser = _items[existingUserIndex];
   //   _items.removeAt(existingUserIndex);

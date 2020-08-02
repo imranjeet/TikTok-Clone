@@ -91,7 +91,7 @@ class Users with ChangeNotifier {
   // Future<void> updateProduct(String id, User newUser) async {
   //   final userIndex = _items.indexWhere((prod) => prod.id == id);
   //   if (userIndex >= 0) {
-  //     final url = 'https://flutter-update.firebaseio.com/products/$id.json';
+  //     final url = 'http://agni-api.infous.xyz/api/';
   //     await http.patch(url,
   //         body: json.encode({
   //           'id': newUser.id,
@@ -107,7 +107,7 @@ class Users with ChangeNotifier {
   // }
 
   // Future<void> deleteUser(String id) async {
-  //   final url = 'https://flutter-update.firebaseio.com/products/$id.json';
+  //   final url = 'http://agni-api.infous.xyz/api/';
   //   final existingUserIndex = _items.indexWhere((usr) => usr.id == id);
   //   var existingUser = _items[existingUserIndex];
   //   _items.removeAt(existingUserIndex);

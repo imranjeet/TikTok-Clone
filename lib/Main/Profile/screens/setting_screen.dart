@@ -1,5 +1,9 @@
-import 'package:agni_app/auth/login_screen.dart';
+import 'package:agni_app/Main/Profile/auth/login_screen.dart';
+import 'package:agni_app/providers/user.dart';
 import 'package:agni_app/providers/users.dart';
+import 'package:agni_app/providers/video.dart';
+import 'package:agni_app/providers/videos.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,10 +19,15 @@ class SettingScreen extends StatefulWidget {
 class _SettingScreenState extends State<SettingScreen> {
   var _isInit = true;
 
-  var _isLoading = true;
+  bool _isLoading = true;
 
   @override
   void didChangeDependencies() {
+    // Provider.of<Users>(context).fetchUsers().then((_) {
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    // });
     if (_isInit) {
       setState(() {
         _isLoading = true;
@@ -62,27 +71,222 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var size = MediaQuery.of(context).size;
     final loadedUser = Provider.of<Users>(
       context,
       listen: false,
     ).userfindById(currentUserId);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            loadedUser.name,
-            style: TextStyle(fontSize: 24, color: Colors.black),
+    return Stack(
+      children: <Widget>[
+        Container(
+          height: size.height * .30,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.orange,
+                  Colors.white,
+                ]),
+            // image: DecorationImage(
+            //   alignment: Alignment.topCenter,
+
+            //   image: loadedUser.profileUrl == null
+            //       ? AssetImage(
+            //           "assets/images/profile-image.png",
+            //         )
+            // : CachedNetworkImage(
+            //     imageUrl: loadedUser.profileUrl,
+            //   ),
+            // ),
           ),
-          Text(
-            loadedUser.email,
-            style: TextStyle(fontSize: 20, color: Colors.black),
+        ),
+        // Container(
+        //   alignment: Alignment.topCenter,
+        //   height: size.height * .23,
+        //   child: loadedUser.profileUrl == null
+        //       ? Image.asset(
+        //           "assets/images/profile-image.png",
+        //           color: Colors.deepOrange[400],
+        //         )
+        //       : CachedNetworkImage(
+        //           imageUrl: loadedUser.profileUrl,
+        //         ),
+        // ),
+        SafeArea(
+            child: Padding(
+          padding: const EdgeInsets.only(
+            top: 30.0,
           ),
-          RaisedButton(
-            onPressed: () => _logOut(context),
-            child: Text("LogOut"),
-          )
+          child: Column(
+            children: <Widget>[
+              Text(
+                loadedUser.bio ?? '"Live happy always"',
+                style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500),
+              ),
+              SizedBox(
+                height: size.height * .04,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                // crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  ProfileNumberItem(),
+                  ProfileImage(loadedUser: loadedUser),
+                  ProfileNumberItem(),
+                ],
+              ),
+              Text(
+                loadedUser.name,
+                style: TextStyle(fontSize: 24, color: Colors.black),
+              ),
+              Text(
+                loadedUser.username ?? "",
+                style: TextStyle(fontSize: 20, color: Colors.black),
+              ),
+              RaisedButton(
+                onPressed: () => _logOut(context),
+                child: Text("LogOut"),
+              ),
+              Expanded(child: GridVideo()),
+            ],
+          ),
+        ))
+      ],
+    );
+  }
+}
+
+class GridVideo extends StatelessWidget {
+  // final int userId;
+
+  // const GridVideo({Key key, this.userId}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    var loadedVideos = Provider.of<Videos>(
+      context,
+      listen: false,
+    ).videoById(0);
+    return GridView.builder(
+      itemCount: loadedVideos.length,
+      gridDelegate:
+          SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+      itemBuilder: (BuildContext context, int index) {
+        return VideoCard(description: loadedVideos[index].description);
+        // Text(
+        //   loadedVideos[index].description,
+        //   style: TextStyle(
+        //       fontSize: 20, color: Colors.black, fontWeight: FontWeight.w500),
+        // );
+      },
+    );
+  }
+}
+
+class VideoCard extends StatelessWidget {
+  final String description;
+
+  const VideoCard({Key key, this.description}) : super(key: key);
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Text(
+        description,
+        style: TextStyle(
+            fontSize: 20, color: Colors.black, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+}
+
+class ProfileNumberItem extends StatelessWidget {
+  const ProfileNumberItem({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Card(
+          color: Colors.deepOrangeAccent,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: Colors.deepOrange, width: 1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 3),
+            child: Text(
+              "255",
+              style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500),
+            ),
+          ),
+        ),
+        Text(
+          "Followers",
+          style: TextStyle(
+              fontSize: 20, color: Colors.black, fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+}
+
+class ProfileImage extends StatelessWidget {
+  const ProfileImage({
+    Key key,
+    @required this.loadedUser,
+  }) : super(key: key);
+
+  final User loadedUser;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(85.0),
+        border: Border.all(
+          color: Colors.orange,
+          width: 10.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 2.0,
+          ),
         ],
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(70.0),
+            border: Border.all(
+              color: Colors.white,
+              width: 4.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 2.0,
+              ),
+            ]),
+        child: Hero(
+          tag: 'profile',
+          child: CircleAvatar(
+              radius: 50,
+              backgroundImage: loadedUser.profileUrl == null
+                  ? AssetImage("assets/images/profile-image.png")
+                  : CachedNetworkImage(
+                      imageUrl: loadedUser.profileUrl,
+                    )),
+        ),
       ),
     );
   }

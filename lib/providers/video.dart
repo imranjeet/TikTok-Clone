@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 class Video {
   int id;
   int userId;
-  String discription;
+  String description;
   String videoUrl;
   String thumbnail;
   int like;
@@ -16,7 +16,7 @@ class Video {
   Video({
     @required this.id,
     @required this.userId,
-    @required this.discription,
+    @required this.description,
     @required this.videoUrl,
     this.thumbnail,
     @required this.like,

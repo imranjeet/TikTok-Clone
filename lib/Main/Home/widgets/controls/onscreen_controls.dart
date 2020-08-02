@@ -2,15 +2,15 @@ import 'dart:convert';
 
 import 'package:agni_app/animations/spinner_animation.dart';
 import 'package:agni_app/providers/video.dart';
-import 'package:agni_app/widgets/video/controls/videoAction/video_like.dart';
-import 'package:agni_app/widgets/video/controls/videoAction/video_share.dart';
-import 'package:agni_app/widgets/video/controls/videoAction/video_views.dart';
-import 'package:agni_app/widgets/video/controls/videoAction/user_profile.dart';
-import 'package:agni_app/widgets/video/controls/videoAction/video_desc.dart';
 import 'package:flutter/material.dart';
 import '../audio_spinner_icon.dart';
+import 'videoAction/user_profile.dart';
 import 'videoAction/video_comment.dart';
 import 'package:http/http.dart' as http;
+
+import 'videoAction/video_desc.dart';
+import 'videoAction/video_like.dart';
+import 'videoAction/video_share.dart';
 
 class ScreenControls extends StatefulWidget {
   final Video video;

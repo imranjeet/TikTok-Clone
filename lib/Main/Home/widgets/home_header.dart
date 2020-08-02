@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../resources/dimen.dart';
-import '../../resources/strings.dart';
+import '../../../resources/dimen.dart';
+import '../../../resources/strings.dart';
 
 Widget homeHeader() {
   return Container(

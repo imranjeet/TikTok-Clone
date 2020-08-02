@@ -1,8 +1,9 @@
 import 'package:agni_app/providers/videos.dart';
-import 'package:agni_app/widgets/video/controls/onscreen_controls.dart';
-import 'package:agni_app/widgets/video/video_player_screen.dart';
+import 'package:agni_app/Main/Home/widgets/video_player_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'controls/onscreen_controls.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -11,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   var _isInit = true;
-  var _isLoading = false;
+  // var _isLoading = false;
 
   @override
   void initState() {
@@ -21,14 +22,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     if (_isInit) {
-      setState(() {
-        _isLoading = true;
-      });
-      Provider.of<Videos>(context).fetchVideos().then((_) {
-        setState(() {
-          _isLoading = false;
-        });
-      });
+      // setState(() {
+      //   _isLoading = true;
+      // });
+      Provider.of<Videos>(context).fetchVideos();
+      // .then((_) {
+      //   setState(() {
+      //     _isLoading = false;
+      //   });
+      // });
     }
     _isInit = false;
     super.didChangeDependencies();

@@ -1,8 +1,9 @@
 import 'dart:convert';
 
+import 'package:agni_app/Main/Profile/auth/register_screen.dart';
 import 'package:agni_app/main.dart';
 import 'package:agni_app/models/user.dart';
-import 'package:agni_app/auth/register_screen.dart';
+import 'package:agni_app/Main/main_screen.dart';
 import 'package:agni_app/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';

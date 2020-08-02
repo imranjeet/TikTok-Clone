@@ -1,12 +1,11 @@
 import 'dart:convert';
 
 import 'package:agni_app/models/user.dart';
-import 'package:agni_app/screens/upload_screen.dart';
+import 'package:agni_app/Main/main_screen.dart';
 import 'package:agni_app/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../main.dart';
 import 'login_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
