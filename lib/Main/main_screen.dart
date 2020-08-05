@@ -29,7 +29,7 @@ class _MainScreenState extends State<MainScreen> {
         shape: CircularNotchedRectangle(),
         child: Container(
           color: Colors.black,
-          height: 50,
+          height: 55,
           child: Column(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.end,
@@ -40,10 +40,10 @@ class _MainScreenState extends State<MainScreen> {
                 color: Colors.grey[700],
               ),
               Container(
-                height: 48,
+                height: 50,
                 color: Colors.black,
                 child: Padding(
-                  padding: EdgeInsets.only(top: 4),
+                  padding: EdgeInsets.only(top: 6),
                   child: Row(
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -223,7 +223,7 @@ class _MainScreenState extends State<MainScreen> {
           // HomeScreen(),
           InboxScreen(),
           SearchScreen(),
-          UploadScreen(),
+          UploadScreen(currentUserId: widget.currentUserId),
           // CameraHomeScreen(),
           InboxScreen(),
           SettingScreen(currentUserId: widget.currentUserId),

@@ -30,7 +30,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
     _controller.setLooping(true);
 
-    _controller.initialize().then((_) => setState(() {}));
+    _controller.initialize().then((_) => setState(() {
+      // _controller.seekTo(Duration(seconds: 1));
+    }));
 
     _controller.play();
   }
@@ -49,9 +51,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               children: <Widget>[
                 VideoPlayer(_controller),
                 _PlayPauseOverlay(controller: _controller),
+                
                 VideoProgressIndicator(
+                  
                   _controller,
-                  allowScrubbing: false,
+                  allowScrubbing: true,
                   colors: VideoProgressColors(
                       playedColor: Colors.grey[800],
                       backgroundColor: Colors.black),

@@ -12,7 +12,6 @@ Future<void> main() async {
   SharedPreferences _prefs = await SharedPreferences.getInstance();
   var currentUserId = _prefs.getInt('userId');
 
-
   runApp(currentUserId != null ? MyApp(currentUserId: currentUserId) : MyApp());
 }
 
@@ -34,9 +33,6 @@ class MyApp extends StatelessWidget {
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Agni App',
-          theme: ThemeData(
-            primarySwatch: Colors.blueGrey,
-          ),
           initialRoute: (currentUserId != null) ? '/' : '/login',
           routes: <String, WidgetBuilder>{
             '/': (BuildContext context) => MainScreen(

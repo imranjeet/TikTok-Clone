@@ -31,7 +31,6 @@ dependencies:
   path_provider: ^1.6.11
   image_picker: ^0.6.7+4
   flutter_video_compress: ^0.3.7+8
-  # uuid: ^2.2.0
   video_player: ^0.10.11+2
   cached_network_image: ^2.2.0+1
   http: ^0.12.2
@@ -43,6 +42,8 @@ dependencies:
   threading: ^0.0.10
   uuid: ^2.2.0
   percent_indicator: ^2.1.5
+  async: ^2.4.1
+  dio: ^3.0.9
 
 dev_dependencies:
   flutter_test:
