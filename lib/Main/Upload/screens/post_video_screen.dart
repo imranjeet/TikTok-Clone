@@ -79,7 +79,7 @@ class _PostVideoScreenState extends State<PostVideoScreen> {
       Response response = await Dio()
           .post("http://agni-api.infous.xyz/api/store-video", data: formData);
       print("File upload response: $response");
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         setState(() {
           _isLoading = false;
         });
