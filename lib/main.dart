@@ -1,6 +1,7 @@
 import 'package:agni_app/providers/users.dart';
 import 'package:agni_app/providers/videos.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Main/Profile/auth/login_screen.dart';
@@ -8,6 +9,9 @@ import 'Main/main_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp, DeviceOrientation.portraitDown
+    ]);
 
   SharedPreferences _prefs = await SharedPreferences.getInstance();
   var currentUserId = _prefs.getInt('userId');
