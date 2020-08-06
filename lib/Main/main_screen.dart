@@ -220,8 +220,8 @@ class _MainScreenState extends State<MainScreen> {
           print('Page Changes to index $int');
         },
         children: <Widget>[
-          // HomeScreen(),
-          InboxScreen(),
+          HomeScreen(),
+          // InboxScreen(),
           SearchScreen(),
           UploadScreen(currentUserId: widget.currentUserId),
           // CameraHomeScreen(),

@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Agni App',
+          title: 'New App',
           initialRoute: (currentUserId != null) ? '/' : '/login',
           routes: <String, WidgetBuilder>{
             '/': (BuildContext context) => MainScreen(
