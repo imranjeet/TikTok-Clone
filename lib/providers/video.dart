@@ -18,7 +18,7 @@ class Video {
     @required this.userId,
     @required this.description,
     @required this.videoUrl,
-    this.thumbnail,
+    @required this.thumbnail,
     @required this.like,
     this.gif,
     @required this.views,

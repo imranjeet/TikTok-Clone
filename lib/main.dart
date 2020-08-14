@@ -1,3 +1,6 @@
+import 'package:agni_app/providers/comments.dart';
+import 'package:agni_app/providers/follows.dart';
+import 'package:agni_app/providers/reactions.dart';
 import 'package:agni_app/providers/users.dart';
 import 'package:agni_app/providers/videos.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +12,8 @@ import 'Main/main_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp, DeviceOrientation.portraitDown
-    ]);
+  SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
   SharedPreferences _prefs = await SharedPreferences.getInstance();
   var currentUserId = _prefs.getInt('userId');
@@ -33,10 +35,23 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider.value(
             value: Videos(),
           ),
+          ChangeNotifierProvider.value(
+            value: Reactions(),
+          ),
+          ChangeNotifierProvider.value(
+            value: Comments(),
+          ),
+          ChangeNotifierProvider.value(
+            value: Follows(),
+          ),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'New App',
+          title: 'Agni App',
+          theme: new ThemeData(
+            primarySwatch: Colors.teal,
+            canvasColor: Colors.transparent,
+          ),
           initialRoute: (currentUserId != null) ? '/' : '/login',
           routes: <String, WidgetBuilder>{
             '/': (BuildContext context) => MainScreen(

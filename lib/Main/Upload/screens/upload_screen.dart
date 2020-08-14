@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:agni_app/Main/Upload/screens/gallery_video_screen.dart';
 import 'package:agni_app/Main/Upload/widgets/record_button_painter.dart';
 import 'package:camera/camera.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lamp/lamp.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
@@ -38,7 +39,7 @@ class _UploadScreenState extends State<UploadScreen>
   String videoPath;
   VideoPlayerController videoController;
   VoidCallback videoPlayerListener;
-  bool enableAudio = true;
+  bool _enableAudio = true;
   bool videoPause = false;
   bool videoActive = false;
   // String imagePath;
@@ -54,11 +55,14 @@ class _UploadScreenState extends State<UploadScreen>
   double videoTime = 0.0;
   Timer timer;
   AnimationController percentageAnimationController;
-  final _picker = ImagePicker();
+  bool _hasFlash = false;
+  bool _isOn = false;
+  double _intensity = 1.0;
 
   @override
   void initState() {
     super.initState();
+    initPlatformState();
     _subscription =
         _flutterVideoCompress.compressProgress$.subscribe((progress) {
       setState(() {
@@ -72,7 +76,8 @@ class _UploadScreenState extends State<UploadScreen>
         setState(() {
           selectedCameraIndex = 1;
         });
-        _initCameraController(cameras[selectedCameraIndex]).then((void v) {});
+        _initCameraController(cameras[selectedCameraIndex], _enableAudio)
+            .then((void v) {});
       } else {
         print('No camera available');
       }
@@ -93,13 +98,23 @@ class _UploadScreenState extends State<UploadScreen>
       });
   }
 
+  initPlatformState() async {
+    bool hasFlash = await Lamp.hasLamp;
+    print("Device has flash ? $hasFlash");
+    setState(() {
+      _hasFlash = hasFlash;
+    });
+  }
+
   String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
 
-  Future _initCameraController(CameraDescription cameraDescription) async {
+  Future _initCameraController(
+      CameraDescription cameraDescription, bool _enableAudio) async {
     if (controller != null) {
       await controller.dispose();
     }
-    controller = CameraController(cameraDescription, ResolutionPreset.high);
+    controller = CameraController(cameraDescription, ResolutionPreset.medium,
+        enableAudio: _enableAudio);
 
     controller.addListener(() {
       if (mounted) {
@@ -140,9 +155,9 @@ class _UploadScreenState extends State<UploadScreen>
     final thumbnailFile = await _flutterVideoCompress
         .getThumbnailWithFile(videoFile.path, quality: 50);
 
-    _startDateTime = DateTime.now();
-    final gifFile = await _flutterVideoCompress
-        .convertVideoToGif(videoFile.path, startTime: 0, duration: 10);
+    // _startDateTime = DateTime.now();
+    // final gifFile = await _flutterVideoCompress
+    //     .convertVideoToGif(videoFile.path, startTime: 0, duration: 10);
 
     // final videoInfo = await _flutterVideoCompress.getMediaInfo(videoFile.path);
 
@@ -154,29 +169,47 @@ class _UploadScreenState extends State<UploadScreen>
     // });
 
     _loadingStreamCtrl.sink.add(false);
-    if (gifFile != null && thumbnailFile != null) {
+    if (thumbnailFile != null) {
       Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => PostVideoScreen(
-                  currentUserId: widget.currentUserId,
-                  videoFile: File(videoPath),
-                  thumbnail: thumbnailFile,
-                  gif: gifFile)));
+                    currentUserId: widget.currentUserId,
+                    videoFile: File(videoPath),
+                    thumbnail: thumbnailFile,
+                    // gif: gifFile
+                  )));
     }
   }
 
   Future getVideoFromGallery() async {
-    final pickedFile = await _picker.getVideo(
-        source: ImageSource.gallery, maxDuration: const Duration(seconds: 10));
+    File pickedFile = await FilePicker.getFile(
+      type: FileType.video,
+      // allowedExtensions: ['mp4',],
+    );
 
-    if (pickedFile != null) {
+    _loadingStreamCtrl.sink.add(true);
+
+    var _startDateTime = DateTime.now();
+
+    final thumbnailFile = await _flutterVideoCompress
+        .getThumbnailWithFile(pickedFile.path, quality: 50);
+
+    // _startDateTime = DateTime.now();
+    // final gifFile = await _flutterVideoCompress
+    //     .convertVideoToGif(pickedFile.path, startTime: 0, duration: 5);
+
+    _loadingStreamCtrl.sink.add(false);
+
+    if (pickedFile != null && thumbnailFile != null) {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => GalleryVideoScreen(
+              builder: (context) => PostVideoScreen(
                     currentUserId: widget.currentUserId,
                     videoFile: File(pickedFile.path),
+                    thumbnail: thumbnailFile,
+                    // gif: gifFile
                   )));
     }
   }
@@ -205,6 +238,28 @@ class _UploadScreenState extends State<UploadScreen>
       child: Stack(
         children: <Widget>[
           CameraPreview(controller),
+          Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  GestureDetector(
+                      child: new Icon(
+                        _isOn ? Icons.flash_off : Icons.flash_on,
+                        size: 35,
+                        color: Colors.white,
+                      ),
+                      onTap: _turnFlash),
+                  SizedBox(
+                    height: 35,
+                  ),
+                  _toggleAudioWidget(),
+                ],
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(25.0),
             child: Align(
@@ -241,20 +296,7 @@ class _UploadScreenState extends State<UploadScreen>
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        // LinearPercentIndicator(
-                        //   width: 100.0,
-                        //   lineHeight: 8.0,
-                        //   percent: _progressState,
-                        //   progressColor: Colors.orange,
-                        // ),
                         CircularProgressIndicator(),
-                        // Padding(
-                        //   padding: const EdgeInsets.all(8.0),
-                        //   child: Text(
-                        //     '$_progressState％',
-                        //     style: TextStyle(color: Colors.white),
-                        //   ),
-                        // ),
                       ],
                     ),
                   ),
@@ -268,25 +310,46 @@ class _UploadScreenState extends State<UploadScreen>
     );
   }
 
+  Future _turnFlash() async {
+    _isOn ? Lamp.turnOff() : Lamp.turnOn(intensity: _intensity);
+    var f = await Lamp.hasLamp;
+    setState(() {
+      _hasFlash = f;
+      _isOn = !_isOn;
+    });
+  }
+
+  // _intensityChanged(double intensity) {
+  //   Lamp.turnOn(intensity: intensity);
+  //   setState(() {
+  //     _intensity = intensity;
+  //   });
+  // }
+
   Widget _videoRecordingCheck() {
-    return GestureDetector(
-      child: Icon(
-        Icons.check,
-        color: Colors.white,
-        size: 30,
+    return Container(
+      height: 40,
+      width: 40,
+      child: FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
+        child: Icon(
+          Icons.check,
+          color: Colors.white,
+          size: 30,
+        ),
+        onPressed: () {
+          setState(() {
+            percentage = 0.0;
+            newPercentage = 0.0;
+          });
+          timer.cancel();
+          onStopButtonPressed();
+          setState(() {
+            videoActive = false;
+          });
+          runVideoCompressMethods(File(videoPath));
+        },
       ),
-      onTap: () {
-        setState(() {
-          percentage = 0.0;
-          newPercentage = 0.0;
-        });
-        timer.cancel();
-        onStopButtonPressed();
-        setState(() {
-          videoActive = false;
-        });
-        runVideoCompressMethods(File(videoPath));
-      },
     );
   }
 
@@ -324,7 +387,7 @@ class _UploadScreenState extends State<UploadScreen>
                 child: Center(
                   child: videoActive
                       ? Text(
-                          "${((percentage) ~/ 1000).toInt()}\tsec",
+                          "${((percentage) ~/ 363).toInt()}\tsec",
                           // percentage.toString(),
                           style: TextStyle(
                             color: Colors.white,
@@ -356,7 +419,7 @@ class _UploadScreenState extends State<UploadScreen>
       (Timer t) => setState(() {
         percentage = newPercentage;
         newPercentage += 1;
-        if (newPercentage > 10000.0) {
+        if (newPercentage > 5450.0) {
           percentage = 0.0;
           newPercentage = 0.0;
           timer.cancel();
@@ -382,6 +445,40 @@ class _UploadScreenState extends State<UploadScreen>
         onTap: () {
           getVideoFromGallery();
         });
+  }
+
+  Widget _toggleAudioWidget() {
+    return _enableAudio
+        ? GestureDetector(
+            child: Icon(
+              Icons.mic,
+              size: 30,
+              color: Colors.red,
+            ),
+            onTap: () {
+              CameraDescription selectedCamera = cameras[selectedCameraIndex];
+              _enableAudio = false;
+              _initCameraController(selectedCamera, _enableAudio);
+              setState(() {
+                _enableAudio = false;
+              });
+            },
+          )
+        : GestureDetector(
+            child: Icon(
+              Icons.mic_off,
+              size: 30,
+              color: Colors.white,
+            ),
+            onTap: () {
+              CameraDescription selectedCamera = cameras[selectedCameraIndex];
+              _enableAudio = true;
+              _initCameraController(selectedCamera, _enableAudio);
+              setState(() {
+                _enableAudio = true;
+              });
+            },
+          );
   }
 
   Widget _videoRecordingController() {
@@ -449,7 +546,7 @@ class _UploadScreenState extends State<UploadScreen>
     selectedCameraIndex =
         selectedCameraIndex < cameras.length - 1 ? selectedCameraIndex + 1 : 0;
     CameraDescription selectedCamera = cameras[selectedCameraIndex];
-    _initCameraController(selectedCamera);
+    _initCameraController(selectedCamera, _enableAudio);
   }
 
   void showInSnackBar(String message) {

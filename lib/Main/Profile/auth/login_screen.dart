@@ -147,29 +147,29 @@ class _LoginScreenState extends State<LoginScreen> {
 //   TextEditingController _emailInputController = TextEditingController();
 //   TextEditingController _pwdInputController = TextEditingController();
 
-//   String emailValidator(String value) {
-//     Pattern pattern =
-//         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-//     RegExp regex = RegExp(pattern);
+  // String emailValidator(String value) {
+  //   Pattern pattern =
+  //       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+  //   RegExp regex = RegExp(pattern);
 
-//     if (value.length == 0) {
-//       return 'Email cannot be empty';
-//     } else if (!regex.hasMatch(value)) {
-//       return 'Email format is invalid';
-//     } else {
-//       return null;
-//     }
-//   }
+  //   if (value.length == 0) {
+  //     return 'Email cannot be empty';
+  //   } else if (!regex.hasMatch(value)) {
+  //     return 'Email format is invalid';
+  //   } else {
+  //     return null;
+  //   }
+  // }
 
-//   String pwdValidator(String value) {
-//     if (value.length == 0) {
-//       return 'Password cannot be empty';
-//     } else if (value.length < 8) {
-//       return 'Password must be longer than 8 characters';
-//     } else {
-//       return null;
-//     }
-//   }
+  // String pwdValidator(String value) {
+  //   if (value.length == 0) {
+  //     return 'Password cannot be empty';
+  //   } else if (value.length < 8) {
+  //     return 'Password must be longer than 8 characters';
+  //   } else {
+  //     return null;
+  //   }
+  // }
 
 //   @override
 //   Widget build(BuildContext context) {

@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-
+import 'package:agni_app/models/http_exception.dart';
 import 'package:agni_app/providers/video.dart';
+import 'package:agni_app/utils/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -31,6 +32,11 @@ class Videos with ChangeNotifier {
     return _items.where((vid) => vid.userId == userId);
   }
 
+  List<Video> allUserVideos(int userId, int i, int total) {
+    var userVideos = _items.where((video) => video.userId == userId).toList();
+    return userVideos.getRange(i, total).toList();
+  }
+
   // void showFavoritesOnly() {
   //   _showFavoritesOnly = true;
   //   notifyListeners();
@@ -42,10 +48,10 @@ class Videos with ChangeNotifier {
   // }
 
   Future<void> fetchVideos() async {
-    const url = 'http://agni-api.infous.xyz/api/get-all-videos';
+    const url = '$baseUrl/get-all-videos';
     try {
       final response = await http.get(url);
-      print(json.decode(response.body));
+      // print(json.decode(response.body));
       final extractedData = json.decode(response.body);
       final List<Video> loadedVideos = [];
       extractedData['data'].forEach((videoData) {
@@ -115,18 +121,19 @@ class Videos with ChangeNotifier {
   //   }
   // }
 
-  // Future<void> deleteVideo(String id) async {
-  //   final url = 'http://agni-api.infous.xyz/api/';
-  //   final existingUserIndex = _items.indexWhere((usr) => usr.id == id);
-  //   var existingUser = _items[existingUserIndex];
-  //   _items.removeAt(existingUserIndex);
-  //   notifyListeners();
-  //   final response = await http.delete(url);
-  //   if (response.statusCode >= 400) {
-  //     _items.insert(existingUserIndex, existingUser);
-  //     notifyListeners();
-  //     throw HttpException('Could not delete product.');
-  //   }
-  //   existingUser = null;
-  // }
+  Future<void> deleteVideo(int id) async {
+    final url = '$baseUrl/delete-video/$id';
+    final existingUserIndex = _items.indexWhere((vid) => vid.id == id);
+    var existingUser = _items[existingUserIndex];
+    _items.removeAt(existingUserIndex);
+    notifyListeners();
+    final response = await http.delete(url);
+    print(response);
+    if (response.statusCode >= 400) {
+      _items.insert(existingUserIndex, existingUser);
+      notifyListeners();
+      throw HttpException('Could not delete product.');
+    }
+    existingUser = null;
+  }
 }

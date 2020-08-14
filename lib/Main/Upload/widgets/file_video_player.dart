@@ -34,7 +34,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       // _controller.seekTo(Duration(seconds: 1));
     }));
 
-    _controller.play();
+    _controller.pause();
   }
 
   @override
@@ -42,10 +42,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return Stack(
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.only(top: 10.0),
+          padding: const EdgeInsets.only(top: 1.0),
           child: Container(
               child: AspectRatio(
-            aspectRatio: 2 / 1,
+            aspectRatio: 5 / 5,
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: <Widget>[

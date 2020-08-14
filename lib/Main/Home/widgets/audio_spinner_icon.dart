@@ -7,19 +7,14 @@ Widget audioSpinner() {
       decoration: BoxDecoration(
           gradient: audioDiscGradient,
           shape: BoxShape.circle,
-          image: DecorationImage(
-              image: NetworkImage(
-                  "https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/mh-supermen-1574086730.png?crop=0.454xw:0.907xh;0.0176xw,0&resize=640:*")
-                  )
-                  )
-                  );
+          image: DecorationImage(image: AssetImage("assets/images/rc1.gif"))));
 }
 
 LinearGradient get audioDiscGradient => LinearGradient(colors: [
-      Colors.grey[800],
-      Colors.grey[900],
-      Colors.grey[900],
-      Colors.grey[800]
+      Colors.pink,
+      Colors.yellow,
+      Colors.teal,
+      Colors.white,
     ], stops: [
       0.0,
       0.4,

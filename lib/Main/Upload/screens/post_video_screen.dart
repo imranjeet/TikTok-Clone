@@ -2,23 +2,23 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:agni_app/Main/Upload/widgets/file_video_player.dart';
+import 'package:agni_app/utils/local_notification.dart';
+import 'package:agni_app/utils/show_loader_dailog.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:path/path.dart';
-import 'package:async/async.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 
 class PostVideoScreen extends StatefulWidget {
   final int currentUserId;
   final File videoFile;
   final File thumbnail;
-  final File gif;
+  // final File gif;
 
   const PostVideoScreen({
     Key key,
     this.videoFile,
     this.thumbnail,
-    this.gif,
+    // this.gif,
     this.currentUserId,
   }) : super(key: key);
 
@@ -32,8 +32,10 @@ class _PostVideoScreenState extends State<PostVideoScreen> {
   final _description = TextEditingController();
   bool _validate = false;
   bool _isLoading = false;
+  int sent;
+  int total;
+  int percentage = 0;
 
-  // ignore: unused_element
   _showSnackMessage(message) {
     var snackBar = SnackBar(
       content: message,
@@ -41,50 +43,58 @@ class _PostVideoScreenState extends State<PostVideoScreen> {
     _scaffoldKey.currentState.showSnackBar(snackBar);
   }
 
-  // Future<void> _postVideoToServer(String description, File _video) async {
-  //   // var url = 'http://agni-api.infous.xyz/api/store-video';
-  //   try {
-  //     print("Image Path Got on Controller : $_video");
-  //     Uri url = Uri.parse('http://agni-api.infous.xyz/api/store-video');
-  //     var sendRequest = http.MultipartRequest("POST", url);
-  //     sendRequest.fields['description'] = description;
-  //     var vid = await http.MultipartFile.fromPath(
-  //       "video",
-  //       _video.path,
-  //     );
-  //     sendRequest.files.add(vid);
-  //     http.StreamedResponse response = await sendRequest.send();
-  //     final finalResp = await http.Response.fromStream(response);
-  //     // return true;
-  //     print(finalResp.body);
-  //   } on SocketException {
-  //     print("No Internet while uploading bill");
-  //     // return false;
-  //   } catch (e) {
-  //     print("ERROR ON UPLOADING BILL : $e");
-  //     // return false;
-  //   }
-  // }
+  Future<void> _uploadFile(
+    BuildContext context,
+    int userId,
+    String description,
+    File videoFile,
+    File thumbnailFile,
+    //  File gifFile
+  ) async {
+    // String fileName = basename(filePath.path);
+    // print("file base name:$fileName");
 
-  void _uploadFile(String description, File filePath) async {
-    String fileName = basename(filePath.path);
-    print("file base name:$fileName");
+    showLoaderDialog(context, "Uploading...");
 
     try {
       FormData formData = new FormData.fromMap({
+        "userId": userId,
         "description": description,
-        "video": await MultipartFile.fromFile(filePath.path),
+        "video": await MultipartFile.fromFile(videoFile.path),
+        "thumbnail": await MultipartFile.fromFile(thumbnailFile.path),
+        // "gif": await MultipartFile.fromFile(gifFile.path),
       });
 
-      Response response = await Dio()
-          .post("http://agni-api.infous.xyz/api/store-video", data: formData);
+      Response response = await Dio().post(
+        "http://agni-api.infous.xyz/api/store-video",
+        data: formData,
+        onSendProgress: (int sent, int total) {
+          // var _percentage = ((sent ~/ total) * 100).toDouble();
+          print("Sent: $sent Total: $total");
+          setState(() {
+            // this.sent = sent;
+            // this.total = total;
+            // this.percentage = ((sent ~/ total) * 100);
+          });
+        },
+      );
+
       print("File upload response: $response");
-      if (response.statusCode == 201) {
+      if (response != null) {
         setState(() {
           _isLoading = false;
         });
+        LocalNotification.success(
+          context,
+          message: 'Video uploaded successfully!',
+          inPostCallback: true,
+        );
+        int count = 0;
+        Navigator.popUntil(context, (route) {
+          return count++ == 2;
+        });
+        // _showSnackMessage(response);
       }
-      _showSnackMessage(response.data['message']);
     } catch (e) {
       print(" error expectation Caugch: $e");
     }
@@ -96,10 +106,27 @@ class _PostVideoScreenState extends State<PostVideoScreen> {
       key: _scaffoldKey,
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.red,
-        title: Text("Post Video"),
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: Text(
+          "Upload video",
+          style: TextStyle(color: Colors.black),
+        ),
+        actions: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+                color: Colors.red,
+                icon: Icon(
+                  Icons.close,
+                  size: 30,
+                ),
+                onPressed: () => Navigator.pop(context)),
+          )
+        ],
       ),
-      body: Container(
+      body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -107,31 +134,39 @@ class _PostVideoScreenState extends State<PostVideoScreen> {
             VideoPlayerScreen(
               videoFile: widget.videoFile,
             ),
-            TextField(
-              controller: _description,
-              decoration: InputDecoration(
-                labelText: 'Video description',
-                errorText: _validate ? 'Value Can\'t Be Empty' : null,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+              child: TextField(
+                // maxLines: 2,
+                controller: _description,
+                decoration: InputDecoration(
+                  labelText: 'Video description',
+                  errorText:
+                      _validate ? 'Video description can\'t be empty!' : null,
+                ),
               ),
             ),
-            _isLoading
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : RaisedButton(
-                    onPressed: () {
-                      setState(() {
-                        _isLoading = true;
-                        _description.text.isEmpty
-                            ? _validate = true
-                            : _validate = false;
-                      });
-                      _uploadFile(_description.text, widget.videoFile);
-                    },
-                    child: Text('Submit'),
-                    textColor: Colors.white,
-                    color: Colors.blueAccent,
-                  )
+            RaisedButton(
+              onPressed: () {
+                setState(() {
+                  _isLoading = true;
+                  _description.text.isEmpty
+                      ? _validate = true
+                      : _validate = false;
+                });
+                _uploadFile(
+                  context,
+                  widget.currentUserId,
+                  _description.text,
+                  widget.videoFile,
+                  widget.thumbnail,
+                  // widget.gif,
+                );
+              },
+              child: Text('Submit'),
+              textColor: Colors.white,
+              color: Colors.deepPurple,
+            )
 
             // Image.file(
             //   widget.thumbnail,

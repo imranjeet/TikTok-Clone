@@ -79,7 +79,8 @@ class _GalleryVideoScreenState extends State<GalleryVideoScreen> {
                   currentUserId: widget.currentUserId,
                   videoFile: videoFile,
                   thumbnail: thumbnailFile,
-                  gif: gifFile)));
+                  // gif: gifFile
+                  )));
     }
   }
 

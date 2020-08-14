@@ -1,8 +1,9 @@
+import 'package:agni_app/providers/users.dart';
+import 'package:agni_app/providers/videos.dart';
 import 'package:agni_app/resources/dimen.dart';
 import 'package:flutter/material.dart';
-
-import 'Upload/screens/camera_screen.dart';
-import 'Home/widgets/home_screen.dart';
+import 'package:provider/provider.dart';
+import 'Home/screens/home_screen.dart';
 import 'Inbox/screens/inbox_screen.dart';
 import 'discover/screens/search_screen.dart';
 import 'Profile/screens/setting_screen.dart';
@@ -18,7 +19,11 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   PageController _myPage = PageController(initialPage: 0);
-  
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -220,7 +225,7 @@ class _MainScreenState extends State<MainScreen> {
           print('Page Changes to index $int');
         },
         children: <Widget>[
-          HomeScreen(),
+          HomeScreen(currentUserId: widget.currentUserId),
           // InboxScreen(),
           SearchScreen(),
           UploadScreen(currentUserId: widget.currentUserId),

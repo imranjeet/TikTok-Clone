@@ -1,56 +1,39 @@
 import 'dart:convert';
 
 import 'package:agni_app/providers/user.dart';
+import 'package:agni_app/utils/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class Users with ChangeNotifier {
   List<User> _items = [];
-  // var _showFavoritesOnly = false;
 
   List<User> get items {
-    // if (_showFavoritesOnly) {
-    //   return _items.where((prodItem) => prodItem.isFavorite).toList();
-    // }
     return [..._items];
   }
-
-  // List<User> get userById {
-  //   return _items.where((prodItem) => prodItem.isFavorite).toList();
-  // }
 
   User userfindById(int id) {
     return _items.firstWhere((usr) => usr.id == id);
   }
 
-  // void showFavoritesOnly() {
-  //   _showFavoritesOnly = true;
-  //   notifyListeners();
-  // }
-
-  // void showAll() {
-  //   _showFavoritesOnly = false;
-  //   notifyListeners();
-  // }
-
   Future<void> fetchUsers() async {
-    const url = 'http://agni-api.infous.xyz/api/get-users';
+    const url = '$baseUrl/get-users';
     try {
       final response = await http.get(url);
-      print(json.decode(response.body));
+      // print(json.decode(response.body));
       final extractedData = json.decode(response.body);
       final List<User> loadedUsers = [];
-      extractedData['data'].forEach((prodData) {
+      extractedData['data'].forEach((data) {
         loadedUsers.add(User(
-          id: prodData['id'],
-          name: prodData['name'],
-          email: prodData['email'],
-          password: prodData['password'],
-          username: prodData['username'],
-          verified: prodData['verified'],
-          bio: prodData['bio'],
-          profileUrl: prodData['profile_pic'],
-          block: prodData['block'],
+          id: data['id'],
+          name: data['name'],
+          email: data['email'],
+          password: data['password'],
+          username: data['username'],
+          verified: data['verified'],
+          bio: data['bio'],
+          profileUrl: data['profile_pic'],
+          block: data['block'],
         ));
       });
       _items = loadedUsers;

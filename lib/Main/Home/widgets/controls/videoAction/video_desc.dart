@@ -1,6 +1,9 @@
+import 'package:agni_app/providers/user.dart';
+import 'package:agni_app/providers/video.dart';
+import 'package:agni_app/utils/constant.dart';
 import 'package:flutter/material.dart';
 
-Widget videoDesc() {
+Widget videoDesc(User videoUser, Video video) {
   return Container(
     padding: EdgeInsets.only(left: 10, bottom: 25),
     child: Column(
@@ -10,23 +13,23 @@ Widget videoDesc() {
         Padding(
           padding: EdgeInsets.only(top: 7, bottom: 7),
           child: Text(
-            "@username",
-            style: TextStyle(
-                fontSize: 14,
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-                backgroundColor: Colors.grey[800]),
+            videoUser.username == null
+                ? "${videoUser.name}"
+                : "@${videoUser.username}" ?? "@username",
+            overflow: TextOverflow.ellipsis,
+            style: kTitleTextstyle,
           ),
         ),
-        Padding(
-          padding: EdgeInsets.only(top: 4, bottom: 7),
-          child: Text("Lorem ipsum dolor sit amet, consectetur ",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w300,
-                backgroundColor: Colors.grey[800])),
-        ),
+        video.description == null
+            ? SizedBox.shrink()
+            : Padding(
+                padding: EdgeInsets.only(top: 4, bottom: 7),
+                child: Text(
+                  "${video.description}",
+                  overflow: TextOverflow.ellipsis,
+                  style: kSubTextStyle,
+                ),
+              ),
         Row(
           children: <Widget>[
             Icon(
@@ -36,10 +39,7 @@ Widget videoDesc() {
             ),
             Text(
               "Lorem ipsum dolor sit amet ...",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w300),
+              style: kSubTextStyle,
             )
           ],
         ),

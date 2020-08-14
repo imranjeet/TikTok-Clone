@@ -24,7 +24,7 @@ class RecordButtonPainter extends CustomPainter {
     Offset center = new Offset(size.width / 2, size.height / 2);
     double radius = min(size.width / 2, size.height / 2);
     canvas.drawCircle(center, radius, line);
-    double arcAngle = 2 * pi * (completePercent / 10000);
+    double arcAngle = 2 * pi * (completePercent / 5450);
     canvas.drawArc(new Rect.fromCircle(center: center, radius: radius), -pi / 2,
         arcAngle, false, complete);
   }

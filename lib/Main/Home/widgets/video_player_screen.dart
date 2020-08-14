@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoLink;
-  // final UniqueKey newKey;
 
-  const VideoPlayerScreen({Key key, this.videoLink,}) : super(key: key);
+  const VideoPlayerScreen({
+    Key key,
+    this.videoLink,
+  }) : super(key: key);
 
   @override
   _VideoPlayerScreenState createState() => _VideoPlayerScreenState();
@@ -32,32 +34,47 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Stack(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 10.0),
-            child: Center(
-                child: AspectRatio(
-              aspectRatio: 9 / 17,
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                children: <Widget>[
-                  VideoPlayer(_controller),
-                  _PlayPauseOverlay(controller: _controller),
-                  VideoProgressIndicator(
-                    _controller,
-                    allowScrubbing: false,
-                    colors: VideoProgressColors(
-                        playedColor: Colors.grey[800],
-                        backgroundColor: Colors.black),
-                  ),
-                ],
-              ),
-            )),
-          ),
-        ],
-      ),
+    return Stack(
+      children: <Widget>[
+        // FloatingActionButton(
+        //   backgroundColor: Colors.black38,
+        //   onPressed: () {},
+        //   child: Icon(
+        //     Icons.arrow_back_ios,
+        //     color: Colors.white,
+        //   ),
+        // ),
+
+        // : SizedBox.shrink(),
+        AspectRatio(
+          aspectRatio: _controller.value.aspectRatio,
+        ),
+
+        Stack(
+          alignment: Alignment.bottomCenter,
+          children: <Widget>[
+            VideoPlayer(_controller),
+            _PlayPauseOverlay(controller: _controller),
+            VideoProgressIndicator(
+              _controller,
+              allowScrubbing: false,
+              colors: VideoProgressColors(
+                  playedColor: Colors.grey[800], backgroundColor: Colors.black),
+            ),
+          ],
+        ),
+        // Align(
+        //   alignment: Alignment.bottomCenter,
+        //   child: VideoProgressIndicator(
+        //     _controller,
+        //     allowScrubbing: true,
+        //     colors: VideoProgressColors(
+        //         playedColor: Colors.grey[800], backgroundColor: Colors.black),
+        //   ),
+        // ),
+        // VideoPlayer(_controller),
+        // _PlayPauseOverlay(controller: _controller),
+      ],
     );
   }
 
