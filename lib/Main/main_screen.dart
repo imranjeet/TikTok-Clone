@@ -1,3 +1,7 @@
+import 'package:agni_app/providers/comments.dart';
+import 'package:agni_app/providers/follows.dart';
+import 'package:agni_app/providers/reactions.dart';
+import 'package:agni_app/providers/user_notifications.dart';
 import 'package:agni_app/providers/users.dart';
 import 'package:agni_app/providers/videos.dart';
 import 'package:agni_app/resources/dimen.dart';
@@ -8,6 +12,7 @@ import 'Inbox/screens/inbox_screen.dart';
 import 'discover/screens/search_screen.dart';
 import 'Profile/screens/setting_screen.dart';
 import 'Upload/screens/upload_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class MainScreen extends StatefulWidget {
   final int currentUserId;
@@ -18,18 +23,96 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  PageController _myPage = PageController(initialPage: 0);
+  int _selectedPage = 0;
+  List<Widget> pageList = List<Widget>();
+
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _firebaseMessaging.getToken().then((token) {
+      print("firebase_token: $token");
+    });
+    pushNotification();
+  }
+
+  pushNotification() {
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        // final int recipientId = message["data"]["id"];
+        final String title = message["notification"]["title"];
+        final String body = message["notification"]["body"];
+
+        // if (recipientId == widget.currentUserId) {
+        SnackBar snackBar = SnackBar(
+          backgroundColor: Colors.purple,
+          content: RichText(
+            textAlign: TextAlign.start,
+            text: TextSpan(
+                text: "$title: ",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500),
+                children: <TextSpan>[
+                  TextSpan(
+                    text: body,
+                    style: TextStyle(color: Colors.white, fontSize: 13),
+                  )
+                ]),
+          ),
+        );
+        _scaffoldKey.currentState.showSnackBar(snackBar);
+        print("onMessage: $message");
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+      },
+    );
+    pageList.add(
+      HomeScreen(currentUserId: widget.currentUserId),
+    );
+    pageList.add(
+      SearchScreen(),
+    );
+    pageList.add(
+      UploadScreen(currentUserId: widget.currentUserId),
+    );
+    pageList.add(
+      InboxScreen(currentUserId: widget.currentUserId),
+    );
+    pageList.add(
+      SettingScreen(currentUserId: widget.currentUserId),
+    );
+  }
+
+  var _isInit = true;
 
   @override
   void didChangeDependencies() {
+    if (_isInit) {
+      Provider.of<Videos>(context).fetchVideos();
+      Provider.of<Users>(context).fetchUsers();
+      Provider.of<Reactions>(context).fetchReactions();
+      Provider.of<Comments>(context).fetchComments();
+      Provider.of<Follows>(context).fetchFollows();
+      Provider.of<UserNotifications>(context)
+          .fetchUserNotifications(widget.currentUserId);
+    }
+    _isInit = false;
     super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
         child: Container(
@@ -58,7 +141,7 @@ class _MainScreenState extends State<MainScreen> {
                         child: InkWell(
                           onTap: () {
                             setState(() {
-                              _myPage.jumpToPage(0);
+                              _selectedPage = 0;
                             });
                           },
                           child: Column(
@@ -87,7 +170,7 @@ class _MainScreenState extends State<MainScreen> {
                         child: InkWell(
                           onTap: () {
                             setState(() {
-                              _myPage.jumpToPage(1);
+                              _selectedPage = 1;
                             });
                           },
                           child: Column(
@@ -116,7 +199,7 @@ class _MainScreenState extends State<MainScreen> {
                         child: InkWell(
                           onTap: () {
                             setState(() {
-                              _myPage.jumpToPage(2);
+                              _selectedPage = 2;
                             });
                           },
                           child: Column(
@@ -164,7 +247,7 @@ class _MainScreenState extends State<MainScreen> {
                         child: InkWell(
                           onTap: () {
                             setState(() {
-                              _myPage.jumpToPage(3);
+                              _selectedPage = 3;
                             });
                           },
                           child: Column(
@@ -189,9 +272,8 @@ class _MainScreenState extends State<MainScreen> {
                         flex: 1,
                         child: InkWell(
                           onTap: () {
-                            // _checkUser();
                             setState(() {
-                              _myPage.jumpToPage(4);
+                              _selectedPage = 4;
                             });
                           },
                           child: Column(
@@ -219,41 +301,10 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      body: PageView(
-        controller: _myPage,
-        onPageChanged: (int) {
-          print('Page Changes to index $int');
-        },
-        children: <Widget>[
-          HomeScreen(currentUserId: widget.currentUserId),
-          // InboxScreen(),
-          SearchScreen(),
-          UploadScreen(currentUserId: widget.currentUserId),
-          // CameraHomeScreen(),
-          InboxScreen(),
-          SettingScreen(currentUserId: widget.currentUserId),
-        ],
-        physics:
-            NeverScrollableScrollPhysics(), // Comment this if you need to use Swipe.
+      body: IndexedStack(
+        index: _selectedPage,
+        children: pageList,
       ),
-      // floatingActionButton: Container(
-      //   height: 55.0,
-      //   width: 55.0,
-      //   child: FittedBox(
-      //     child: FloatingActionButton(
-      //       backgroundColor: Colors.purple,
-      //       onPressed: () {
-      //         _addVideo(context);
-      //       },
-      //       child: Icon(
-      //         Icons.camera,
-      //         color: Colors.white,
-      //         size: 40,
-      //       ),
-      //       elevation: 5.0,
-      //     ),
-      //   ),
-      // ),
     );
   }
 }

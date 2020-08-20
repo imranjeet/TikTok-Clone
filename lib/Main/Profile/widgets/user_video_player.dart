@@ -39,6 +39,7 @@ class UserVideo extends StatelessWidget {
       context,
       listen: false,
     ).allUserVideos(userId, videoIndex, totalVideos);
+    bool isDirect = true;
     return RefreshIndicator(
       onRefresh: () => _refreshVideos(context),
       child: PageView.builder(
@@ -48,19 +49,20 @@ class UserVideo extends StatelessWidget {
             backgroundColor: Colors.transparent,
             floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
             floatingActionButton: FloatingActionButton(
-              backgroundColor: Colors.black38,
+              backgroundColor: Colors.transparent,
               onPressed: () {
                 Navigator.pop(context);
               },
               child: Icon(
                 Icons.arrow_back_ios,
+                size: 30,
                 color: Colors.white,
               ),
             ),
             body: Stack(
               children: <Widget>[
                 VideoPlayerScreen(
-                    videoLink: userVideos[index].videoUrl,),
+                    videoLink: userVideos[index].videoUrl, isDirect: isDirect),
                 ScreenControls(
                   video: userVideos[index],
                   currentUserId: userId,

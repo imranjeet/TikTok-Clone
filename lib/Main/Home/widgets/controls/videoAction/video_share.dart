@@ -7,12 +7,12 @@ class VideoShare extends StatelessWidget {
       padding: EdgeInsets.only(top: 10, bottom: 10),
       child: Column(
         children: <Widget>[
-          Icon(
-            Icons.reply,
-            color: Colors.white,
-            size: 35,
-            textDirection: TextDirection.rtl,
-          ),
+          Image.asset(
+                "assets/images/share.png",
+                height: 35,
+                width: 35,
+                color: Colors.white,
+              ),
           Padding(
             padding: EdgeInsets.only(
               top: 1.0,

@@ -1,6 +1,6 @@
-import 'package:agni_app/animations/spinner_animation.dart';
 import 'package:agni_app/providers/users.dart';
 import 'package:agni_app/providers/video.dart';
+import 'package:agni_app/utils/animations/spinner_animation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../audio_spinner_icon.dart';
@@ -37,9 +37,14 @@ class ScreenControls extends StatelessWidget {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: <Widget>[
-                  VideoUserProfile(currentUserId: currentUserId, videoUser: videoUser),
-                  VideoLike(currentUserId: currentUserId, videoId: video.id),
-                  VideoComment(currentUserId: currentUserId, videoId: video.id),
+                  VideoUserProfile(
+                      currentUserId: currentUserId, videoUser: videoUser),
+                  VideoLike(
+                      currentUserId: currentUserId,
+                      videoId: video.id,
+                      videoUserId: videoUser.id,
+                      optionalImageUrl: video.thumbnail),
+                  VideoComment(currentUserId: currentUserId, video: video),
                   VideoShare(),
                   SizedBox(
                     height: 15,

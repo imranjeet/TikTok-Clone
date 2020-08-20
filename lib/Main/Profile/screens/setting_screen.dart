@@ -29,11 +29,11 @@ class SettingScreen extends StatelessWidget {
         ctx,
         dataSnapshot,
       ) {
-        // if (dataSnapshot.connectionState == ConnectionState.waiting) {
-        //   return Center(child: CircularProgressIndicator());
+        if (dataSnapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
         // } else if (dataSnapshot.connectionState == ConnectionState.none) {
         //   return NetworkErrorScreen();
-        // }
+        }
         try {
           if (dataSnapshot.hasData == null) {
             return EmptyBoxScreen();

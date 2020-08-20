@@ -1,12 +1,16 @@
 import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoLink;
+  final bool isDirect;
 
   const VideoPlayerScreen({
     Key key,
     this.videoLink,
+    this.isDirect,
   }) : super(key: key);
 
   @override
@@ -26,60 +30,87 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     });
 
     _controller.setLooping(true);
-
-    _controller.initialize().then((_) => setState(() {}));
-
     _controller.play();
+
+    _controller.initialize().then((_) {
+      setState(() {});
+      // if (mounted) {
+      //   setState(() {});
+      //   _controller.play();
+      // }
+    });
   }
+
+  // @override
+  // void didChangeDependencies() {
+  //   routeObserver.subscribe(this, ModalRoute.of(context)); //Subscribe it here
+  //   super.didChangeDependencies();
+  // }
+
+  // @override
+  // void didPop() {
+  //   print("didPop");
+  //   super.didPop();
+  // }
+
+  // @override
+  // void didPopNext() {
+  //   print("didPopNext");
+  //   _controller.play();
+  //   super.didPopNext();
+  // }
+
+  // @override
+  // void didPush() {
+  //   print("didPush");
+  //   super.didPush();
+  // }
+
+  // @override
+  // void didPushNext() {
+  //   print("didPushNext");
+  //   _controller.pause();
+  //   super.didPushNext();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: <Widget>[
-        // FloatingActionButton(
-        //   backgroundColor: Colors.black38,
-        //   onPressed: () {},
-        //   child: Icon(
-        //     Icons.arrow_back_ios,
-        //     color: Colors.white,
-        //   ),
-        // ),
-
-        // : SizedBox.shrink(),
-        AspectRatio(
-          aspectRatio: _controller.value.aspectRatio,
-        ),
-
-        Stack(
-          alignment: Alignment.bottomCenter,
+    return VisibilityDetector(
+        key: Key("unique key"),
+        onVisibilityChanged: (VisibilityInfo info) {
+          debugPrint("${info.visibleFraction} of my widget is visible");
+          if (info.visibleFraction == 0) {
+            widget.isDirect ? print("is Direct play") : _controller.pause();
+          } else {
+            _controller.play();
+          }
+        },
+        child: Stack(
           children: <Widget>[
-            VideoPlayer(_controller),
-            _PlayPauseOverlay(controller: _controller),
-            VideoProgressIndicator(
-              _controller,
-              allowScrubbing: false,
-              colors: VideoProgressColors(
-                  playedColor: Colors.grey[800], backgroundColor: Colors.black),
+            AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+            ),
+            Stack(
+              alignment: Alignment.bottomCenter,
+              children: <Widget>[
+                VideoPlayer(_controller),
+                _PlayPauseOverlay(controller: _controller),
+                VideoProgressIndicator(
+                  _controller,
+                  allowScrubbing: false,
+                  colors: VideoProgressColors(
+                      playedColor: Colors.grey[800],
+                      backgroundColor: Colors.black),
+                ),
+              ],
             ),
           ],
-        ),
-        // Align(
-        //   alignment: Alignment.bottomCenter,
-        //   child: VideoProgressIndicator(
-        //     _controller,
-        //     allowScrubbing: true,
-        //     colors: VideoProgressColors(
-        //         playedColor: Colors.grey[800], backgroundColor: Colors.black),
-        //   ),
-        // ),
-        // VideoPlayer(_controller),
-        // _PlayPauseOverlay(controller: _controller),
-      ],
-    );
+        ));
   }
 
   @override
   void dispose() {
+    // routeObserver.unsubscribe(this);
     _controller.dispose();
     super.dispose();
   }

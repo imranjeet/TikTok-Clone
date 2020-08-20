@@ -1,15 +1,17 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:agni_app/Main/Upload/widgets/file_video_player.dart';
+import 'package:agni_app/providers/videos.dart';
 import 'package:agni_app/utils/local_notification.dart';
-import 'package:agni_app/utils/show_loader_dailog.dart';
-import 'package:dio/dio.dart';
+import 'package:agni_app/Main/show_loader_dailog.dart';
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/percent_indicator.dart';
+import 'package:provider/provider.dart';
+
+import '../../base_alert_dialog.dart';
 
 class PostVideoScreen extends StatefulWidget {
   final int currentUserId;
+  final String soundName;
   final File videoFile;
   final File thumbnail;
   // final File gif;
@@ -20,6 +22,7 @@ class PostVideoScreen extends StatefulWidget {
     this.thumbnail,
     // this.gif,
     this.currentUserId,
+    this.soundName,
   }) : super(key: key);
 
   @override
@@ -27,8 +30,6 @@ class PostVideoScreen extends StatefulWidget {
 }
 
 class _PostVideoScreenState extends State<PostVideoScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   final _description = TextEditingController();
   bool _validate = false;
   bool _isLoading = false;
@@ -36,74 +37,59 @@ class _PostVideoScreenState extends State<PostVideoScreen> {
   int total;
   int percentage = 0;
 
-  _showSnackMessage(message) {
-    var snackBar = SnackBar(
-      content: message,
-    );
-    _scaffoldKey.currentState.showSnackBar(snackBar);
-  }
-
-  Future<void> _uploadFile(
+  Future<void> _uploadVideo(
     BuildContext context,
     int userId,
+    String soundName,
     String description,
     File videoFile,
     File thumbnailFile,
-    //  File gifFile
   ) async {
-    // String fileName = basename(filePath.path);
-    // print("file base name:$fileName");
-
     showLoaderDialog(context, "Uploading...");
 
-    try {
-      FormData formData = new FormData.fromMap({
-        "userId": userId,
-        "description": description,
-        "video": await MultipartFile.fromFile(videoFile.path),
-        "thumbnail": await MultipartFile.fromFile(thumbnailFile.path),
-        // "gif": await MultipartFile.fromFile(gifFile.path),
+    await Provider.of<Videos>(context, listen: false)
+        .addVideo(userId, soundName, description, videoFile, thumbnailFile)
+        .then((value) {
+      LocalNotification.success(
+        context,
+        message: 'Video uploaded successfully',
+        inPostCallback: true,
+      );
+      setState(() {});
+      int count = 0;
+      Navigator.popUntil(context, (route) {
+        return count++ == 2;
       });
+    });
+    // String type = "comment";
+    // String value = "replied: $comment";
 
-      Response response = await Dio().post(
-        "http://agni-api.infous.xyz/api/store-video",
-        data: formData,
-        onSendProgress: (int sent, int total) {
-          // var _percentage = ((sent ~/ total) * 100).toDouble();
-          print("Sent: $sent Total: $total");
-          setState(() {
-            // this.sent = sent;
-            // this.total = total;
-            // this.percentage = ((sent ~/ total) * 100);
+    // await Provider.of<UserNotifications>(context, listen: false)
+    //     .addPushNotification(_currentUserId, widget.video.userId, type, value,
+    //         widget.video.thumbnail);
+  }
+
+  _confirmCancel() {
+    var baseDialog = BaseAlertDialog(
+        title: "Confirm Registration",
+        content: "I Agree that the information provided is correct",
+        yesOnPressed: () {
+          int count = 0;
+          Navigator.popUntil(context, (route) {
+            return count++ == 2;
           });
         },
-      );
-
-      print("File upload response: $response");
-      if (response != null) {
-        setState(() {
-          _isLoading = false;
-        });
-        LocalNotification.success(
-          context,
-          message: 'Video uploaded successfully!',
-          inPostCallback: true,
-        );
-        int count = 0;
-        Navigator.popUntil(context, (route) {
-          return count++ == 2;
-        });
-        // _showSnackMessage(response);
-      }
-    } catch (e) {
-      print(" error expectation Caugch: $e");
-    }
+        noOnPressed: () {
+          Navigator.pop(context);
+        },
+        yes: "Agree",
+        no: "Cancel");
+    showDialog(context: context, builder: (BuildContext context) => baseDialog);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -122,7 +108,7 @@ class _PostVideoScreenState extends State<PostVideoScreen> {
                   Icons.close,
                   size: 30,
                 ),
-                onPressed: () => Navigator.pop(context)),
+                onPressed: () => _confirmCancel()),
           )
         ],
       ),
@@ -149,14 +135,14 @@ class _PostVideoScreenState extends State<PostVideoScreen> {
             RaisedButton(
               onPressed: () {
                 setState(() {
-                  _isLoading = true;
                   _description.text.isEmpty
                       ? _validate = true
                       : _validate = false;
                 });
-                _uploadFile(
+                _uploadVideo(
                   context,
                   widget.currentUserId,
+                  widget.soundName,
                   _description.text,
                   widget.videoFile,
                   widget.thumbnail,

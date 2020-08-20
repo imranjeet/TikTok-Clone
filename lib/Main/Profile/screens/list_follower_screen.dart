@@ -117,7 +117,7 @@ class _ListFollowerScreenState extends State<ListFollowerScreen>
               child: Text(
                 "Followers",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -127,7 +127,7 @@ class _ListFollowerScreenState extends State<ListFollowerScreen>
               child: Text(
                 "Following",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -158,6 +158,7 @@ class _ListFollowerScreenState extends State<ListFollowerScreen>
     );
 
     return ListView.builder(
+      physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       scrollDirection: Axis.vertical,
       shrinkWrap: true,
       itemCount: userFollowers.length,
@@ -178,6 +179,7 @@ class _ListFollowerScreenState extends State<ListFollowerScreen>
     );
 
     return ListView.builder(
+      physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       scrollDirection: Axis.vertical,
       shrinkWrap: true,
       itemCount: userFollowings.length,

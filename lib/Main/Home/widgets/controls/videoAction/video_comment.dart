@@ -1,4 +1,5 @@
 import 'package:agni_app/providers/comments.dart';
+import 'package:agni_app/providers/video.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,16 +7,15 @@ import 'comment_bottom_sheet.dart';
 
 class VideoComment extends StatefulWidget {
   final int currentUserId;
-  final int videoId;
+  final Video video;
 
-  const VideoComment({Key key, this.currentUserId, this.videoId})
+  const VideoComment({Key key, this.currentUserId, this.video})
       : super(key: key);
   @override
   _VideoCommentState createState() => _VideoCommentState();
 }
 
 class _VideoCommentState extends State<VideoComment> {
-
   @override
   Widget build(BuildContext context) {
     var videoCommentsCount = Provider.of<Comments>(
@@ -23,7 +23,7 @@ class _VideoCommentState extends State<VideoComment> {
           listen: false,
         )
             .commetByVideoId(
-              widget.videoId,
+              widget.video.id,
             )
             .length ??
         0;
@@ -32,20 +32,24 @@ class _VideoCommentState extends State<VideoComment> {
       child: Column(
         children: <Widget>[
           InkWell(
-            onTap: () {
-              showBottomSheet(
-                context: context,
-                builder: (ctx) => CommentBottomSheet(
-                    videoId: widget.videoId,
-                    currentUserId: widget.currentUserId),
-              );
-            },
-            child: Icon(
-              Icons.chat_bubble,
-              color: Colors.white,
-              size: 35,
-            ),
-          ),
+              onTap: () {
+                showBottomSheet(
+                  context: context,
+                  builder: (ctx) => CommentBottomSheet(
+                      video: widget.video, currentUserId: widget.currentUserId),
+                );
+              },
+              child: Image.asset(
+                "assets/images/comment.png",
+                height: 35,
+                width: 35,
+              ),
+              // child: Icon(
+              //   Icons.chat_bubble,
+              //   color: Colors.white,
+              //   size: 35,
+              // ),
+              ),
           Padding(
             padding: EdgeInsets.only(
               top: 1.0,

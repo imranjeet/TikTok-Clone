@@ -55,9 +55,8 @@ class Comments with ChangeNotifier {
         "video_id": videoId,
         "userId": currentUserId,
         "comment": comment,
-        // "created_at": DateTime.now(),
       });
-      print(formData);
+      // print(formData);
       Response response = await Dio().post(
         _url,
         data: formData,
@@ -72,7 +71,7 @@ class Comments with ChangeNotifier {
         createdAt: response.data['created_at'],
       );
       _items.add(newUser);
-      print(newUser);
+      // print(newUser);
       notifyListeners();
     } catch (error) {
       print(error);
@@ -81,14 +80,14 @@ class Comments with ChangeNotifier {
   }
 
   Future<void> deleteComment(int id) async {
-    print(id.toString());
+    // print(id.toString());
     final url = '$baseUrl/delete-comment/$id';
     final existingUserIndex = _items.indexWhere((rec) => rec.id == id);
     var existingUser = _items[existingUserIndex];
     _items.removeAt(existingUserIndex);
     notifyListeners();
     final response = await http.delete(url);
-    print(response.body);
+    // print(response.body);
     if (response.statusCode >= 400) {
       _items.insert(existingUserIndex, existingUser);
       notifyListeners();

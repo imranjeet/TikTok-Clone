@@ -1,19 +1,24 @@
 import 'dart:ui';
 
+import 'package:agni_app/Main/Profile/auth/login_screen.dart';
 import 'package:agni_app/Main/Profile/widgets/grid_video.dart';
 import 'package:agni_app/Main/Profile/widgets/profile_follower_no.dart';
 import 'package:agni_app/Main/Profile/widgets/profile_image.dart';
+import 'package:agni_app/Main/Profile/widgets/tabbar_videos.dart';
 import 'package:agni_app/Main/empty_box.dart';
 import 'package:agni_app/providers/follows.dart';
 import 'package:agni_app/providers/user.dart';
+import 'package:agni_app/providers/user_notifications.dart';
 import 'package:agni_app/providers/users.dart';
 import 'package:agni_app/providers/video.dart';
 import 'package:agni_app/providers/videos.dart';
 import 'package:agni_app/utils/local_notification.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_video_compress/flutter_video_compress.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'list_follower_screen.dart';
 import 'profile_edit_screen.dart';
@@ -30,6 +35,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final _flutterVideoCompress = FlutterVideoCompress();
   int postOrientation = 0;
   bool following = false;
 
@@ -52,6 +58,12 @@ class _ProfilePageState extends State<ProfilePage> {
       );
       setState(() {});
     });
+    String type = "follow";
+    String value = "started following you.";
+    String thumbUrl = "";
+
+    await Provider.of<UserNotifications>(context, listen: false)
+        .addPushNotification(userId, followedUserId, type, value, thumbUrl);
   }
 
   Future<void> _unFollow(int id) async {
@@ -65,6 +77,22 @@ class _ProfilePageState extends State<ProfilePage> {
       );
       setState(() {});
     });
+  }
+
+  _logOut(BuildContext context) async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    _prefs.remove('userId');
+    var currentUserId = _prefs.getInt('userId');
+    if (currentUserId == null) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => LoginScreen()));
+    } else {
+      showDialog(context: context, child: Text("Failed to logout!"));
+    }
+  }
+
+  Future<void> _deleteAllCache() async {
+    await _flutterVideoCompress.deleteAllCache();
   }
 
   @override
@@ -149,7 +177,7 @@ class _ProfilePageState extends State<ProfilePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Container(
-                  height: MediaQuery.of(context).size.height * 0.04,
+                  height: MediaQuery.of(context).size.height * 0.045,
                   color: Colors.black26,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -177,22 +205,47 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                       ownProfile
-                          ? Padding(
-                              padding:
-                                  const EdgeInsets.only(right: 10, bottom: 15),
-                              child: InkWell(
-                                  child: Icon(
-                                    Icons.settings,
-                                    size: 25,
-                                    color: Colors.white,
+                          ? PopupMenuButton<int>(
+                              // padding: EdgeInsets.all(5),
+                              elevation: 4,
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  height: 20,
+                                  value: 1,
+                                  child: ListTile(
+                                    title: Text(
+                                      "Logout",
+                                    ),
+                                    trailing: Icon(Icons.exit_to_app),
                                   ),
-                                  onTap: () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => ProfileEdit(
-                                                currentUser: loadedUser)));
-                                  }),
+                                ),
+                                PopupMenuItem(
+                                  height: 20,
+                                  value: 2,
+                                  child: ListTile(
+                                    title: Text(
+                                      "Delete cache",
+                                    ),
+                                    trailing: Icon(Icons.delete),
+                                  ),
+                                ),
+                              ],
+                              onSelected: (selection) {
+                                switch (selection) {
+                                  case 1:
+                                    _logOut(context);
+                                    break;
+                                  case 2:
+                                    _deleteAllCache();
+                                    break;
+                                }
+                              },
+                              icon: Icon(
+                                Icons.settings,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                              offset: Offset(0, 100),
                             )
                           : Text(""),
                     ],
@@ -231,7 +284,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
                 ownProfile
-                    ? SizedBox.shrink()
+                    ? createButtonTitleAndFunction(
+                        title: "Edit",
+                        kColor: Colors.orange,
+                        performFunction: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProfileEdit(currentUser: loadedUser)));
+                        },
+                      )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
@@ -262,12 +325,16 @@ class _ProfilePageState extends State<ProfilePage> {
                   color: Colors.blueGrey[500],
                   thickness: 1.0,
                 ),
-                createGridVideo(),
-                Divider(
-                  color: Colors.blueGrey[500],
-                  thickness: 1.0,
-                ),
-                displayProfileVideos(loadedVideos),
+                Expanded(
+                    child: TabbarVideos(
+                        currentUserId: widget.currentUserId,
+                        userId: widget.userId)),
+                // createGridVideo(),
+                // Divider(
+                //   color: Colors.blueGrey[500],
+                //   thickness: 1.0,
+                // ),
+                // displayProfileVideos(loadedVideos),
               ],
             ),
           ))
@@ -323,10 +390,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => ListFollowerScreen(
-                            currentUserId: widget.currentUserId,
-                            userId: widget.userId,
-                            tabIndex: 0,
-                          )));
+                                currentUserId: widget.currentUserId,
+                                userId: widget.userId,
+                                tabIndex: 0,
+                              )));
                 },
                 child: ProfileNumberItem(
                     count: userFollowersCount, typeName: "followers")),
@@ -339,10 +406,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => ListFollowerScreen(
-                          currentUserId: widget.currentUserId,
-                            userId: widget.userId,
-                            tabIndex: 1,
-                        )));
+                              currentUserId: widget.currentUserId,
+                              userId: widget.userId,
+                              tabIndex: 1,
+                            )));
               },
               child: ProfileNumberItem(
                   count: userFollowingsCount, typeName: "following"),

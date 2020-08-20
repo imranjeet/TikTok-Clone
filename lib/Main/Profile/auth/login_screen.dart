@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:agni_app/Main/Profile/auth/register_screen.dart';
-import 'package:agni_app/main.dart';
 import 'package:agni_app/models/user.dart';
 import 'package:agni_app/Main/main_screen.dart';
 import 'package:agni_app/services/user_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,6 +19,21 @@ class _LoginScreenState extends State<LoginScreen> {
   final email = TextEditingController();
   final password = TextEditingController();
 
+  String _fcmToken;
+
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+
+  @override
+  void initState() {
+    super.initState();
+    _firebaseMessaging.getToken().then((String token) {
+      assert(token != null);
+      setState(() {
+        _fcmToken = token;
+      });
+    });
+  }
+
   _login(BuildContext context, User user) async {
     var _userService = UserService();
     var registeredUser = await _userService.login(user);
@@ -28,12 +43,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (result['result'] == true) {
       SharedPreferences _prefs = await SharedPreferences.getInstance();
       _prefs.setInt('userId', result['user']['id']);
-      // _prefs.setString('userName', result['user']['name']);
-      // _prefs.setString('userEmail', result['user']['email']);
       var currentUserId = _prefs.getInt('userId');
-      // Navigator.pop(context);
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => MainScreen(currentUserId: currentUserId)));
+          context,
+          MaterialPageRoute(
+              builder: (context) => MainScreen(currentUserId: currentUserId)));
     } else {
       _showSnackMessage(Text(
         'Failed to login!',
@@ -105,6 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       var user = User();
                       user.email = email.text;
                       user.password = password.text;
+                      user.fcmToken = _fcmToken;
                       _login(context, user);
                     },
                     child: Text(
@@ -130,211 +145,258 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-// import 'package:agni_app/models/auth.dart';
-// import 'package:agni_app/screens/home_screen.dart';
-// import 'package:agni_app/screens/register_screen.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
 
-// class Login extends StatefulWidget {
+
+// import 'package:flutter/gestures.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter/scheduler.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:learn_fazz/app_config.dart';
+// import 'package:learn_fazz/assets/learn_fazz_icons.dart';
+// import 'package:learn_fazz/blocs/auth/auth.dart';
+// import 'package:learn_fazz/blocs/login/login.dart';
+// import 'package:learn_fazz/pages/dashboard_page.dart';
+// import 'package:learn_fazz/pages/register_choice_page.dart';
+
+// class LoginPage extends StatefulWidget {
+//   static const String tag = '/login-screen';
+
+//   LoginPage({this.loginBloc});
+  
+//   final LoginBloc loginBloc;
+  
 //   @override
-//   _LoginState createState() => _LoginState();
+//   State<StatefulWidget> createState() => _LoginPageState();
 // }
 
-// class _LoginState extends State<Login> {
-//   final GlobalKey<FormState> _loginFormKey = GlobalKey<FormState>();
-//   TextEditingController _emailInputController = TextEditingController();
-//   TextEditingController _pwdInputController = TextEditingController();
+// class _LoginPageState extends State<LoginPage> {
+//   String _email;
+//   String _password;
+//   bool _obscureText = true;
 
-  // String emailValidator(String value) {
-  //   Pattern pattern =
-  //       r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-  //   RegExp regex = RegExp(pattern);
+//   final GlobalKey formKey = GlobalKey<FormState>();
+//   final Color borderColor = Colors.black.withOpacity(0.4);
 
-  //   if (value.length == 0) {
-  //     return 'Email cannot be empty';
-  //   } else if (!regex.hasMatch(value)) {
-  //     return 'Email format is invalid';
-  //   } else {
-  //     return null;
-  //   }
-  // }
+//   LoginBloc _loginBloc;
 
-  // String pwdValidator(String value) {
-  //   if (value.length == 0) {
-  //     return 'Password cannot be empty';
-  //   } else if (value.length < 8) {
-  //     return 'Password must be longer than 8 characters';
-  //   } else {
-  //     return null;
-  //   }
-  // }
+//   @override
+//   void didChangeDependencies() {
+//     _loginBloc = widget.loginBloc ?? LoginBloc(
+//       authRepository: AppConfig.of(context)?.authRepository,
+//       authBloc: BlocProvider.of<AuthBloc>(context),
+//     );
+//     super.didChangeDependencies();
+//   }
+
+//   @override
+//   void dispose() {
+//     _loginBloc.dispose();
+//     super.dispose();
+//   }
+
+//   onLoginButtonPressed() {
+//     final FormState form = formKey.currentState;
+//     if (form.validate()) {
+//       form.save();
+//       _loginBloc?.dispatch(LoginButtonPressed(email: _email, password: _password));
+//     }
+//   }
+
+//   Widget buildWidget(BuildContext context, bool _isLoading, LoginState state) {
+//     final Image payfazzLogo = Image.asset(
+//         'lib/assets/images/learnfazz-color.png',
+//         key: const Key('logo'));
+
+//     final TextFormField email = TextFormField(
+//       autofocus: true,
+//       style: const TextStyle(color: Colors.black, fontSize: 16.0),
+//       keyboardType: TextInputType.emailAddress,
+//       decoration: InputDecoration(
+//         fillColor: Colors.white,
+//         filled: true,
+//         hintText: 'Email',
+//         hintStyle: const TextStyle(color: Colors.black54),
+//         contentPadding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+//         border: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(32.0),
+//         ),
+//         enabledBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(32.0),
+//           borderSide: BorderSide(width: 1.5, color: borderColor),
+//         ),
+//         prefixIcon: const Icon(
+//           LearnFazz.mail,
+//           color: Colors.black54,
+//         ),
+//       ),
+//       validator: (String value) {
+//         if (value.isEmpty) {
+//           return 'email cannot be empty';
+//         } else if (value.isNotEmpty && !value.contains('@gmail.')) {
+//           return 'invalid email address';
+//         }
+//       },
+//       onSaved: (String value) => _email = value,
+//     );
+
+//     final TextFormField password = TextFormField(
+//       key: const Key('password'),
+//       style: const TextStyle(color: Colors.black, fontSize: 16.0),
+//       obscureText: _obscureText,
+//       decoration: InputDecoration(
+//         fillColor: Colors.white,
+//         filled: true,
+//         hintText: 'Password',
+//         hintStyle: const TextStyle(color: Colors.black54),
+//         contentPadding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+//         border: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(32.0),
+//         ),
+//         enabledBorder: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(32.0),
+//           borderSide: BorderSide(width: 1.5, color: borderColor),
+//         ),
+//         prefixIcon: const Icon(
+//           LearnFazz.lock,
+//           color: Colors.black54,
+//         ),
+//         suffixIcon: IconButton(
+//             key: const Key('showPasswordButton'),
+//             icon: Icon(
+//               _obscureText ? Icons.visibility : Icons.visibility_off,
+//               semanticLabel: _obscureText ? 'hide password' : 'show password',
+//             ),
+//             onPressed: () {
+//               setState(() {
+//                 _obscureText = !_obscureText;
+//                 print(
+//                     'Icon button pressed! state: $_obscureText'); //Confirmed that the _passwordVisible is toggled each time the button is pressed.
+//               });
+//             }),
+//       ),
+//       validator: (String value) =>
+//           value.isEmpty ? 'password cannot be empty' : null,
+//       onSaved: (String value) => _password = value,
+//     );
+
+//     final RichText forgotPassword = RichText(
+//       text: TextSpan(children: <TextSpan>[
+//         TextSpan(
+//             text: 'Forgot Password',
+//             style: const TextStyle(
+//                 color: Colors.black54,
+//                 fontWeight: FontWeight.bold,
+//                 decoration: TextDecoration.underline),
+//             recognizer: TapGestureRecognizer()..onTap = null)
+//       ]),
+//       textAlign: TextAlign.center,
+//     );
+//     final Widget haveAccount = Row(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       crossAxisAlignment: CrossAxisAlignment.center,
+//       children: <Widget>[
+//         const Text(
+//           'Don\'t have an account? ',
+//           style: TextStyle(color: Colors.black54),
+//         ),
+//         InkWell(
+//           key: const Key('signUp'),
+//           child: const Text('SIGN UP',
+//               style: TextStyle(
+//                   color: Colors.black54,
+//                   fontWeight: FontWeight.bold,
+//                   decoration: TextDecoration.underline)),
+//           onTap: _isLoading
+//               ? null
+//               : () => Navigator.of(context).pushNamed(RegisterChoicePage.tag),
+//         ),
+//       ],
+//     );
+
+//     Widget bottomNavigationBar;
+//     if (_isLoading) {
+//       bottomNavigationBar = const LinearProgressIndicator();
+//     }
+
+//     return Scaffold(
+//       backgroundColor: Colors.lightBlueAccent,
+//       body: Builder(
+//         builder: (BuildContext context) {
+//           if (state is LoginFailure) {
+//             SchedulerBinding.instance.addPostFrameCallback((_) {
+//               Scaffold.of(context).showSnackBar(
+//                 SnackBar(
+//                   content: Text(state.error),
+//                 ),
+//               );
+//             });
+//           } else if (state is LoginSucceed) {
+//             SchedulerBinding.instance.addPostFrameCallback((_) {
+//               if (Navigator.of(context).canPop()) {
+//                 Navigator.of(context).pop();
+//               }
+//               Navigator.of(context).pushReplacement(
+//                 MaterialPageRoute(builder: (context) => DashboardPage(user: state.user))
+//               );
+//             });
+//           }
+//           return Container(
+//             decoration: const BoxDecoration(
+//                 image: DecorationImage(
+//               image: AssetImage('lib/assets/images/pattern-bg.png'),
+//               fit: BoxFit.cover,
+//             )),
+//             child: Form(
+//               key: formKey,
+//               child: ListView(
+//                 padding:
+//                     const EdgeInsets.only(top: 210.0, left: 50.0, right: 50.0),
+//                 children: <Widget>[
+//                   payfazzLogo,
+//                   const SizedBox(height: 10.0),
+//                   email,
+//                   const SizedBox(height: 8.0),
+//                   password,
+//                   const SizedBox(height: 8.0),
+//                   InkWell(
+//                     key: const Key('signInButton'),
+//                     onTap: onLoginButtonPressed,
+//                     child: Container(
+//                       //width: 100.0,
+//                       height: 50.0,
+//                       decoration: BoxDecoration(
+//                         color: _isLoading ? Colors.grey : Colors.blueAccent,
+//                         borderRadius: BorderRadius.circular(30.0),
+//                       ),
+//                       child: const Center(
+//                         child: Text(
+//                           'Sign In',
+//                           style: TextStyle(fontSize: 18.0, color: Colors.white),
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                   const SizedBox(height: 8.0),
+//                   forgotPassword,
+//                   const SizedBox(height: 125.0),
+//                   haveAccount,
+//                   const SizedBox(height: 5.0),
+//                 ],
+//               ),
+//             ));
+//         },
+//       ),
+//       bottomNavigationBar: bottomNavigationBar,
+//     );
+//   }
 
 //   @override
 //   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         backgroundColor: Colors.black87,
-//         title: Text('Login'),
-//         centerTitle: true,
-//       ),
-//       body: Center(
-//         child: Padding(
-//           padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 32.0),
-//           child: Form(
-//             key: _loginFormKey,
-//             child: ListView(
-//               children: <Widget>[
-//                 // Image
-//                 Container(
-//                   padding: const EdgeInsets.only(top: 32.0),
-//                   child: Image(
-//                     image: AssetImage('assets/images/yoga1.png'),
-//                   ),
-//                 ),
-
-//                 // Email
-//                 TextFormField(
-//                   keyboardType: TextInputType.emailAddress,
-//                   controller: _emailInputController,
-//                   decoration: InputDecoration(
-//                     labelText: "Email",
-//                     fillColor: Colors.white,
-//                     border: OutlineInputBorder(
-//                       borderRadius: BorderRadius.circular(30.0), // #7449D1
-//                     ),
-//                   ),
-//                   validator: emailValidator,
-//                 ),
-
-//                 SizedBox(
-//                   height: 32.0,
-//                 ),
-
-//                 // Password
-//                 TextFormField(
-//                   keyboardType: TextInputType.text,
-//                   obscureText: true,
-//                   controller: _pwdInputController,
-//                   decoration: InputDecoration(
-//                     labelText: "Password",
-//                     fillColor: Colors.white,
-//                     border: OutlineInputBorder(
-//                       borderRadius: BorderRadius.circular(30.0),
-//                     ),
-//                   ),
-//                   validator: pwdValidator,
-//                 ),
-
-//                 SizedBox(
-//                   height: 32.0,
-//                 ),
-
-//                 // Button
-//                 Center(
-//                   child: ButtonTheme(
-//                     minWidth: 150.0,
-//                     child: FlatButton(
-//                       onPressed: _login,
-//                       color: Colors.deepPurpleAccent,
-//                       textColor: Colors.white,
-//                       padding: EdgeInsets.all(14.0),
-//                       child: Text(
-//                         'Login',
-//                         style: TextStyle(fontSize: 18.0),
-//                       ),
-//                       shape: RoundedRectangleBorder(
-//                         borderRadius: BorderRadius.circular(30.0),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-
-//                 SizedBox(
-//                   height: 15,
-//                 ),
-
-//                 // Register Now link
-//                 Center(
-//                   child: FlatButton(
-//                     color: Colors.transparent,
-//                     onPressed: _onRegister,
-//                     child: Text(
-//                       'Sign up',
-//                       style: TextStyle(
-//                         fontSize: 16.0,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-
-//                 SizedBox(
-//                   height: 12,
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
+//     return BlocBuilder<LoginEvent, LoginState>(
+//       bloc: _loginBloc,
+//       builder: (BuildContext context, LoginState state) {
+//         return buildWidget(context, state is LoginLoading, state);
+//       },
 //     );
-//   }
-
-//   void _onRegister() {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => Register(),
-//       ),
-//     );
-//   }
-
-//   void _login() async {
-//     Auth auth = Auth();
-//     try {
-//       if (_loginFormKey.currentState.validate()) {
-//         FirebaseUser user = await auth
-//             .signIn(
-//           _emailInputController.text,
-//           _pwdInputController.text,
-//         )
-//             .catchError((err) {
-//           print(err);
-//           showDialog(
-//             context: context,
-//             builder: (BuildContext context) {
-//               return AlertDialog(
-//                 title: Text("Error"),
-//                 content: Text("Incorrect Email or Password!"),
-//                 actions: <Widget>[
-//                   FlatButton(
-//                     child: Text("Close"),
-//                     onPressed: () {
-//                       Navigator.of(context).pop();
-//                     },
-//                   ),
-//                 ],
-//               );
-//             },
-//           );
-//         });
-
-//         if (user != null) {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(
-//               builder: (context) => HomeScreen(
-//                 email: user.email,
-//                 uid: user.uid,
-//                 displayName: user.displayName,
-//                 photoUrl: user.photoUrl,
-//               ),
-//             ),
-//           );
-//         }
-//       }
-//     } catch (e) {
-//       print('Error: ' + e.toString());
-//     }
 //   }
 // }

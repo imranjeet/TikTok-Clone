@@ -6,12 +6,11 @@ class Video {
   String description;
   String videoUrl;
   String thumbnail;
-  int like;
   String gif;
   int views;
-  String section;
-  String soundId;
-  String created;
+  int sectionId;
+  String soundName;
+  String createdAt;
 
   Video({
     @required this.id,
@@ -19,11 +18,10 @@ class Video {
     @required this.description,
     @required this.videoUrl,
     @required this.thumbnail,
-    @required this.like,
     this.gif,
     @required this.views,
-    this.section,
-    this.soundId,
-    @required this.created,
+    this.sectionId,
+    this.soundName,
+    @required this.createdAt,
   });
 }

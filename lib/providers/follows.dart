@@ -34,7 +34,7 @@ class Follows with ChangeNotifier {
     const url = '$baseUrl/get-all-follows';
     try {
       final response = await http.get(url);
-      print(json.decode(response.body));
+      // print(json.decode(response.body));
       final extractedData = json.decode(response.body);
       final List<Follow> loadedFollows = [];
       extractedData['data'].forEach((data) {
@@ -45,7 +45,7 @@ class Follows with ChangeNotifier {
         ));
       });
       _items = loadedFollows;
-      print("loadedFollow: $loadedFollows");
+      // print("loadedFollow: $loadedFollows");
       notifyListeners();
     } catch (error) {
       print(error);
@@ -64,8 +64,8 @@ class Follows with ChangeNotifier {
         _url,
         data: formData,
       );
-      print("Add like response: $response");
-      print(response.data['id']);
+      // print("Add like response: $response");
+      // print(response.data['id']);
       final newFollow = Follow(
         userId: userId,
         followUserId: followUserId,
@@ -81,14 +81,14 @@ class Follows with ChangeNotifier {
   }
 
   Future<void> deleteFollow(int id) async {
-    print(id.toString());
+    // print(id.toString());
     final url = '$baseUrl/delete-follow/$id';
     final existingUserIndex = _items.indexWhere((rec) => rec.id == id);
     var existingUser = _items[existingUserIndex];
     _items.removeAt(existingUserIndex);
     notifyListeners();
     final response = await http.delete(url);
-    print(response.body);
+    // print(response.body);
     if (response.statusCode >= 400) {
       _items.insert(existingUserIndex, existingUser);
       notifyListeners();

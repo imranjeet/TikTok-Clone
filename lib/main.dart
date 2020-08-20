@@ -1,6 +1,8 @@
 import 'package:agni_app/providers/comments.dart';
 import 'package:agni_app/providers/follows.dart';
 import 'package:agni_app/providers/reactions.dart';
+import 'package:agni_app/providers/sounds.dart';
+import 'package:agni_app/providers/user_notifications.dart';
 import 'package:agni_app/providers/users.dart';
 import 'package:agni_app/providers/videos.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +12,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'Main/Profile/auth/login_screen.dart';
 import 'Main/main_screen.dart';
 
+
+RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
+const debug = true;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // setupLocator();
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
@@ -28,37 +36,45 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(
-            value: Users(),
-          ),
-          ChangeNotifierProvider.value(
-            value: Videos(),
-          ),
-          ChangeNotifierProvider.value(
-            value: Reactions(),
-          ),
-          ChangeNotifierProvider.value(
-            value: Comments(),
-          ),
-          ChangeNotifierProvider.value(
-            value: Follows(),
-          ),
-        ],
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Agni App',
-          theme: new ThemeData(
-            primarySwatch: Colors.teal,
-            canvasColor: Colors.transparent,
-          ),
-          initialRoute: (currentUserId != null) ? '/' : '/login',
-          routes: <String, WidgetBuilder>{
-            '/': (BuildContext context) => MainScreen(
-                  currentUserId: currentUserId,
-                ),
-            '/login': (BuildContext context) => LoginScreen(),
-          },
-        ));
+      providers: [
+        ChangeNotifierProvider.value(
+          value: Users(),
+        ),
+        ChangeNotifierProvider.value(
+          value: Videos(),
+        ),
+        ChangeNotifierProvider.value(
+          value: Reactions(),
+        ),
+        ChangeNotifierProvider.value(
+          value: Comments(),
+        ),
+        ChangeNotifierProvider.value(
+          value: Follows(),
+        ),
+        ChangeNotifierProvider.value(
+          value: UserNotifications(),
+        ),
+        ChangeNotifierProvider.value(
+          value: Sounds(),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Agni App',
+        navigatorObservers: [routeObserver],
+        theme: new ThemeData(
+          primarySwatch: Colors.teal,
+          canvasColor: Colors.transparent,
+        ),
+        initialRoute: (currentUserId != null) ? '/' : '/login',
+        routes: <String, WidgetBuilder>{
+          '/': (BuildContext context) => MainScreen(
+                currentUserId: currentUserId,
+              ),
+          '/login': (BuildContext context) => LoginScreen(),
+        },
+      ),
+    );
   }
 }

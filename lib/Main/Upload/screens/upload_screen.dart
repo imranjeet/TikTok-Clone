@@ -3,16 +3,19 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:agni_app/Main/Upload/widgets/record_button_painter.dart';
+import 'package:agni_app/Main/Upload/widgets/sound_audio_player.dart';
+import 'package:agni_app/Main/Upload/widgets/sound_selection.dart';
 import 'package:camera/camera.dart';
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:flutter_video_compress/flutter_video_compress.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:lamp/lamp.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
-
+import 'package:path_provider/path_provider.dart' as syspaths;
 import 'post_video_screen.dart';
 
 class UploadScreen extends StatefulWidget {
@@ -58,6 +61,9 @@ class _UploadScreenState extends State<UploadScreen>
   bool _hasFlash = false;
   bool _isOn = false;
   double _intensity = 1.0;
+  String soundUrl;
+  var _isLoading = false;
+  String soundName;
 
   @override
   void initState() {
@@ -146,39 +152,63 @@ class _UploadScreenState extends State<UploadScreen>
   Future<void> runVideoCompressMethods(File videoFile) async {
     _loadingStreamCtrl.sink.add(true);
 
-    var _startDateTime = DateTime.now();
-    // final compressedVideoInfo = await _flutterVideoCompress.compressVideo(
-    //   videoFile.path,
-    //   quality: VideoQuality.DefaultQuality,
-    //   deleteOrigin: false,
-    // );
     final thumbnailFile = await _flutterVideoCompress
         .getThumbnailWithFile(videoFile.path, quality: 50);
 
-    // _startDateTime = DateTime.now();
-    // final gifFile = await _flutterVideoCompress
-    //     .convertVideoToGif(videoFile.path, startTime: 0, duration: 10);
+    final FlutterFFmpeg _flutterFFmpeg = new FlutterFFmpeg();
 
-    // final videoInfo = await _flutterVideoCompress.getMediaInfo(videoFile.path);
-
-    // setState(() {
-    //   _thumbnailFileImage = Image.file(thumbnailFile);
-    //   _gifFileImage = Image.file(gifFile);
-    //   // _originalVideoInfo = videoInfo;
-    //   // _compressedVideoInfo = compressedVideoInfo;
-    // });
-
+    if (thumbnailFile != null && videoFile != null) {
+      if (soundUrl != null) {
+        final appDir = await syspaths.getApplicationDocumentsDirectory();
+        String rawDocumentPath = appDir.path;
+        final mergedFilePath = '$rawDocumentPath/output.mp4';
+        String commandToExecute =
+            '-y -i ${videoFile.path} -i $soundUrl -map 0:v -map 1:a  -shortest $mergedFilePath';
+        _flutterFFmpeg.execute(commandToExecute).then((rc) async {
+          print("FFmpeg process exited with rc $rc");
+          print("Last command output: $mergedFilePath");
+          final commpressVideo = await _flutterVideoCompress.compressVideo(
+            mergedFilePath,
+            quality: VideoQuality.MediumQuality,
+            deleteOrigin: false,
+          );
+          setState(() {
+            _isLoading = false;
+            soundUrl = null;
+          });
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PostVideoScreen(
+                        currentUserId: widget.currentUserId,
+                        videoFile: File(commpressVideo.path),
+                        thumbnail: thumbnailFile,
+                        soundName: soundName,
+                        // gif: gifFile
+                      )));
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => PostVideoScreen(
+                      currentUserId: widget.currentUserId,
+                      videoFile: File(videoFile.path),
+                      thumbnail: thumbnailFile,
+                      soundName: "",
+                      // gif: gifFile
+                    )));
+      }
+    }
     _loadingStreamCtrl.sink.add(false);
-    if (thumbnailFile != null) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => PostVideoScreen(
-                    currentUserId: widget.currentUserId,
-                    videoFile: File(videoPath),
-                    thumbnail: thumbnailFile,
-                    // gif: gifFile
-                  )));
+  }
+
+  void showDownloadProgress(received, total) {
+    if (total != -1) {
+      print((received / total * 100).toStringAsFixed(0) + "%");
     }
   }
 
@@ -188,18 +218,28 @@ class _UploadScreenState extends State<UploadScreen>
       // allowedExtensions: ['mp4',],
     );
 
-    _loadingStreamCtrl.sink.add(true);
+    setState(() {
+      _isLoading = true;
+    });
+
+    // _loadingStreamCtrl.sink.add(true);
 
     var _startDateTime = DateTime.now();
 
     final thumbnailFile = await _flutterVideoCompress
         .getThumbnailWithFile(pickedFile.path, quality: 50);
 
-    // _startDateTime = DateTime.now();
-    // final gifFile = await _flutterVideoCompress
-    //     .convertVideoToGif(pickedFile.path, startTime: 0, duration: 5);
+    // final commpressVideo = await _flutterVideoCompress.compressVideo(
+    //   pickedFile.path,
+    //   quality: VideoQuality.MediumQuality,
+    //   deleteOrigin: false,
+    // );
 
-    _loadingStreamCtrl.sink.add(false);
+    // _loadingStreamCtrl.sink.add(false);
+
+    setState(() {
+      _isLoading = false;
+    });
 
     if (pickedFile != null && thumbnailFile != null) {
       Navigator.push(
@@ -209,6 +249,7 @@ class _UploadScreenState extends State<UploadScreen>
                     currentUserId: widget.currentUserId,
                     videoFile: File(pickedFile.path),
                     thumbnail: thumbnailFile,
+                    soundName: "",
                     // gif: gifFile
                   )));
     }
@@ -232,81 +273,105 @@ class _UploadScreenState extends State<UploadScreen>
       );
     }
 
-    return AspectRatio(
-      aspectRatio: controller.value.aspectRatio,
+    return Scaffold(
       key: _scaffoldKey,
-      child: Stack(
-        children: <Widget>[
-          CameraPreview(controller),
-          Align(
-            alignment: Alignment.topRight,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  GestureDetector(
-                      child: new Icon(
-                        _isOn ? Icons.flash_off : Icons.flash_on,
-                        size: 35,
-                        color: Colors.white,
-                      ),
-                      onTap: _turnFlash),
-                  SizedBox(
-                    height: 35,
-                  ),
-                  _toggleAudioWidget(),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(25.0),
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                  videoActive
-                      ? _videoRecordingController()
-                      : _videoUploadControl(),
-                  _videoControlWidget(),
-                  videoActive
-                      ? _videoRecordingCheck()
-                      : _cameraToggleRowWidget(),
-                ],
-              ),
-            ),
-          ),
-          StreamBuilder<bool>(
-            stream: _loadingStreamCtrl.stream,
-            builder: (context, AsyncSnapshot<bool> snapshot) {
-              if (snapshot.data == true) {
-                return GestureDetector(
-                  onTap: () {
-                    _flutterVideoCompress.cancelCompression();
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        CircularProgressIndicator(),
-                      ],
-                    ),
-                  ),
-                );
-              }
-              return Container();
-            },
-          ),
-        ],
+      backgroundColor: Colors.black,
+      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.transparent,
+        onPressed: () {
+          timer.cancel();
+          onStopButtonPressed();
+          setState(() {
+            percentage = 0.0;
+            newPercentage = 0.0;
+            videoActive = false;
+            soundUrl = null;
+          });
+          CameraDescription selectedCamera = cameras[selectedCameraIndex];
+          _enableAudio = true;
+          _initCameraController(selectedCamera, _enableAudio);
+        },
+        child: Icon(Icons.refresh),
       ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+              height: MediaQuery.of(context).size.height * .93,
+              child: AspectRatio(
+                aspectRatio: controller.value.aspectRatio,
+                child: Stack(
+                  // alignment: Alignment.bottomCenter,
+                  children: <Widget>[
+                    CameraPreview(controller),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 40.0),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: soundUrl == null
+                            ? RaisedButton(
+                                color: Colors.purple[400],
+                                child: Text(
+                                  "Add sound",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                onPressed: () {
+                                  _soundSelection(context);
+                                },
+                              )
+                            : SoundAudioPlayer(soundItem: soundUrl),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 40),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            GestureDetector(
+                                child: new Icon(
+                                  _isOn ? Icons.flash_off : Icons.flash_on,
+                                  size: 35,
+                                  color: Colors.white,
+                                ),
+                                onTap: _turnFlash),
+                            SizedBox(
+                              height: 35,
+                            ),
+                            _toggleAudioWidget(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 15),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            // videoActive
+                            //     ? _videoRecordingController()
+                            //     :
+                            videoActive
+                                ? _videoRecordingController()
+                                : _videoUploadControl(),
+                            _videoControlWidget(),
+                            videoActive
+                                ? _videoRecordingCheck()
+                                : _cameraToggleRowWidget(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
@@ -341,12 +406,13 @@ class _UploadScreenState extends State<UploadScreen>
           setState(() {
             percentage = 0.0;
             newPercentage = 0.0;
+            videoActive = false;
+            // soundUrl = null;
+            _isLoading = true;
           });
           timer.cancel();
           onStopButtonPressed();
-          setState(() {
-            videoActive = false;
-          });
+
           runVideoCompressMethods(File(videoPath));
         },
       ),
@@ -397,7 +463,8 @@ class _UploadScreenState extends State<UploadScreen>
                       : Text(
                           "Tap",
                           style: TextStyle(
-                            color: Colors.red,
+                            color: Colors.white,
+                            fontSize: 12,
                           ),
                         ),
                 ),
@@ -406,6 +473,14 @@ class _UploadScreenState extends State<UploadScreen>
                   borderRadius: BorderRadius.circular(50),
                 ),
               ),
+              // onLongPressEnd: (details) {
+              //   onPauseButtonPressed();
+              //   timer.cancel();
+              // },
+              // onSecondaryLongPress: () {
+              //   onResumeButtonPressed();
+              //   timer = newTimer();
+              // },
             ),
           ),
         ),
@@ -425,7 +500,9 @@ class _UploadScreenState extends State<UploadScreen>
           timer.cancel();
           onStopButtonPressed();
           setState(() {
+            soundUrl = null;
             videoActive = false;
+            _isLoading = true;
           });
           runVideoCompressMethods(File(videoPath));
         }
@@ -586,11 +663,8 @@ class _UploadScreenState extends State<UploadScreen>
         setState(() {
           videoPause = false;
         });
-      // showInSnackBar('Video recording resumed');
     });
   }
-
-  // String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
 
   Future<String> startVideoRecording() async {
     if (!controller.value.isInitialized) {
@@ -631,8 +705,6 @@ class _UploadScreenState extends State<UploadScreen>
       _showCameraException(e);
       return null;
     }
-
-    // await _startVideoPlayer();
   }
 
   Future<void> pauseVideoRecording() async {
@@ -659,5 +731,17 @@ class _UploadScreenState extends State<UploadScreen>
       _showCameraException(e);
       rethrow;
     }
+  }
+
+  _soundSelection(BuildContext context) async {
+    Map selectedSound = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SelectionSound()),
+    );
+    print("selected song: $selectedSound");
+    setState(() {
+      soundUrl = selectedSound['path'];
+      soundName = selectedSound['soundName'];
+    });
   }
 }

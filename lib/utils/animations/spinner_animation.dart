@@ -1,7 +1,7 @@
+import 'package:agni_app/resources/dimen.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import '../resources/dimen.dart';
 
 class SpinnerAnimation extends StatefulWidget {
   final Widget body;

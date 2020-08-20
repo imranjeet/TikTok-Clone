@@ -1,6 +1,7 @@
 import 'package:agni_app/providers/comments.dart';
 import 'package:agni_app/providers/follows.dart';
 import 'package:agni_app/providers/reactions.dart';
+import 'package:agni_app/providers/sounds.dart';
 import 'package:agni_app/providers/users.dart';
 import 'package:agni_app/providers/videos.dart';
 import 'package:agni_app/Main/Home/widgets/video_player_screen.dart';
@@ -14,6 +15,20 @@ class HomeScreen extends StatelessWidget {
   final int currentUserId;
 
   HomeScreen({Key key, this.currentUserId}) : super(key: key);
+  // var _isInit = true;
+
+  // @override
+  // void didChangeDependencies() {
+  //   if (_isInit) {
+  //     Provider.of<Videos>(context).fetchVideos();
+  //     Provider.of<Users>(context).fetchUsers();
+  //     Provider.of<Reactions>(context).fetchReactions();
+  //     Provider.of<Comments>(context).fetchComments();
+  //     Provider.of<Follows>(context).fetchFollows();
+  //   }
+  //   _isInit = false;
+  //   super.didChangeDependencies();
+  // }
 
   Future<void> _refreshVideos(BuildContext context) async {
     await Provider.of<Videos>(context).fetchVideos();
@@ -21,6 +36,7 @@ class HomeScreen extends StatelessWidget {
     await Provider.of<Reactions>(context).fetchReactions();
     await Provider.of<Comments>(context).fetchComments();
     await Provider.of<Follows>(context).fetchFollows();
+    await Provider.of<Sounds>(context).fetchSounds();
   }
 
   @override
@@ -32,44 +48,46 @@ class HomeScreen extends StatelessWidget {
           Provider.of<Reactions>(context, listen: false).fetchReactions(),
           Provider.of<Comments>(context, listen: false).fetchComments(),
           Provider.of<Follows>(context, listen: false).fetchFollows(),
+          Provider.of<Sounds>(context, listen: false).fetchSounds(),
         ]),
         builder: (
           ctx,
           dataSnapshot,
         ) {
           try {
-            // if (dataSnapshot.connectionState == ConnectionState.waiting) {
-            //   return Center(child: CircularProgressIndicator());
-            // } else
-            if (dataSnapshot.hasData == null) {
+            if (dataSnapshot.connectionState == ConnectionState.waiting) {
+              return Scaffold(
+                  backgroundColor: Colors.black,
+                  body: Center(child: CircularProgressIndicator()));
+            } else if (dataSnapshot.hasData == null) {
               return EmptyBoxScreen();
             } else {
               return Consumer<Videos>(
-                builder: (ctx, videoData, child) => RefreshIndicator(
-                  backgroundColor: Colors.white,
-                  onRefresh: () => _refreshVideos(context),
-                  child: PageView.builder(
-                    scrollDirection: Axis.vertical,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        color: Colors.black,
-                        child: Stack(
-                          children: <Widget>[
-                            VideoPlayerScreen(
-                              videoLink: videoData.items[index].videoUrl,
-                            ),
-                            ScreenControls(
-                              video: videoData.items[index],
-                              currentUserId: currentUserId,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    itemCount: videoData.items.length,
-                  ),
-                ),
-              );
+                  builder: (ctx, videoData, child) => RefreshIndicator(
+                      backgroundColor: Colors.white,
+                      onRefresh: () => _refreshVideos(context),
+                      child: PageView.builder(
+                          scrollDirection: Axis.vertical,
+                          itemCount: videoData.items.length,
+                          itemBuilder: (context, pageIndex) {
+                            bool isDirect = false;
+                            return Container(
+                              color: Colors.black,
+                              child: Stack(
+                                children: <Widget>[
+                                  VideoPlayerScreen(
+                                    videoLink:
+                                        videoData.items[pageIndex].videoUrl,
+                                        isDirect: isDirect,
+                                  ),
+                                  ScreenControls(
+                                    video: videoData.items[pageIndex],
+                                    currentUserId: currentUserId,
+                                  ),
+                                ],
+                              ),
+                            );
+                          })));
             }
           } catch (error) {
             print(error);
@@ -87,26 +105,5 @@ class HomeScreen extends StatelessWidget {
             );
           }
         });
-    // RefreshIndicator(
-    //   onRefresh: () => _refreshVideos(context),
-    //   child: PageView.builder(
-    //     scrollDirection: Axis.vertical,
-    //     itemBuilder: (context, index) {
-    //       return Container(
-    //         color: Colors.black,
-    //         child: Stack(
-    //           children: <Widget>[
-    //             VideoPlayerScreen(videoLink: videoList.items[index].videoUrl),
-    //             ScreenControls(
-    //               video: videoList.items[index],
-    //               currentUserId: widget.currentUserId,
-    //             ),
-    //           ],
-    //         ),
-    //       );
-    //     },
-    //     itemCount: videoList.items.length,
-    //   ),
-    // );
   }
 }

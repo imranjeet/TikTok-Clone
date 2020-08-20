@@ -1,4 +1,5 @@
 import 'package:agni_app/providers/reactions.dart';
+import 'package:agni_app/providers/user_notifications.dart';
 import 'package:agni_app/utils/local_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,8 +7,15 @@ import 'package:provider/provider.dart';
 class VideoLike extends StatefulWidget {
   final int currentUserId;
   final int videoId;
+  final int videoUserId;
+  final String optionalImageUrl;
 
-  const VideoLike({Key key, this.currentUserId, this.videoId})
+  const VideoLike(
+      {Key key,
+      this.currentUserId,
+      this.videoId,
+      this.videoUserId,
+      this.optionalImageUrl})
       : super(key: key);
 
   @override
@@ -30,20 +38,26 @@ class _VideoLikeState extends State<VideoLike> {
     // } catch (error) {
     //   await showDialog(
     //     context: context,
-      //   builder: (ctx) => AlertDialog(
-      //     title: Text('An error occurred!'),
-      //     content: Text('Something went wrong.'),
-      //     actions: <Widget>[
-      //       FlatButton(
-      //         child: Text('Okay'),
-      //         onPressed: () {
-      //           Navigator.of(ctx).pop();
-      //         },
-      //       )
-      //     ],
-      //   ),
-      // );
+    //   builder: (ctx) => AlertDialog(
+    //     title: Text('An error occurred!'),
+    //     content: Text('Something went wrong.'),
+    //     actions: <Widget>[
+    //       FlatButton(
+    //         child: Text('Okay'),
+    //         onPressed: () {
+    //           Navigator.of(ctx).pop();
+    //         },
+    //       )
+    //     ],
+    //   ),
+    // ); addPushNotification
     // }
+    String type = "like";
+    String value = "liked your video.";
+
+    await Provider.of<UserNotifications>(context, listen: false)
+        .addPushNotification(_currentUserId, widget.videoUserId, type, value,
+            widget.optionalImageUrl);
   }
 
   Future<void> _deleteReaction(int id) async {

@@ -15,7 +15,7 @@ Widget videoDesc(User videoUser, Video video) {
           child: Text(
             videoUser.username == null
                 ? "${videoUser.name}"
-                : "@${videoUser.username}" ?? "@username",
+                : "@${videoUser.username}",
             overflow: TextOverflow.ellipsis,
             style: kTitleTextstyle,
           ),
@@ -30,19 +30,21 @@ Widget videoDesc(User videoUser, Video video) {
                   style: kSubTextStyle,
                 ),
               ),
-        Row(
-          children: <Widget>[
-            Icon(
-              Icons.music_note,
-              size: 19,
-              color: Colors.white,
-            ),
-            Text(
-              "Lorem ipsum dolor sit amet ...",
-              style: kSubTextStyle,
-            )
-          ],
-        ),
+        video.soundName == null
+            ? SizedBox.shrink()
+            : Row(
+                children: <Widget>[
+                  Icon(
+                    Icons.music_note,
+                    size: 19,
+                    color: Colors.white,
+                  ),
+                  Text(
+                    video.soundName,
+                    style: kSubTextStyle,
+                  )
+                ],
+              ),
       ],
     ),
   );

@@ -3,6 +3,7 @@ class User {
   String name;
   String email;
   String password;
+  String fcmToken;
 
   toJson() {
     return {
@@ -10,6 +11,7 @@ class User {
       'name': name.toString(),
       'email': email,
       'password': password,
+      'fcm_token': fcmToken,
     };
   }
 }

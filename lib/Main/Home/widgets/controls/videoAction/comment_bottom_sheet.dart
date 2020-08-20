@@ -1,6 +1,8 @@
 import 'package:agni_app/providers/comment.dart';
 import 'package:agni_app/providers/comments.dart';
+import 'package:agni_app/providers/user_notifications.dart';
 import 'package:agni_app/providers/users.dart';
+import 'package:agni_app/providers/video.dart';
 import 'package:agni_app/utils/constant.dart';
 import 'package:agni_app/utils/local_notification.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -12,10 +14,10 @@ import '../../../../empty_box.dart';
 import '../../../../user_profile_screen.dart';
 
 class CommentBottomSheet extends StatefulWidget {
-  final int videoId;
+  final Video video;
   final int currentUserId;
 
-  const CommentBottomSheet({Key key, this.videoId, this.currentUserId})
+  const CommentBottomSheet({Key key, this.video, this.currentUserId})
       : super(key: key);
   @override
   _CommentBottomSheetState createState() => _CommentBottomSheetState();
@@ -25,7 +27,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   TextEditingController _commentTextController = TextEditingController();
 
   Future<void> _addComment(
-      int _videoId, int _currentUserId, String comment) async {
+      int _videoId, int _currentUserId, String comment, ) async {
     await Provider.of<Comments>(context, listen: false)
         .addComment(_videoId, _currentUserId, comment)
         .then((value) {
@@ -37,6 +39,12 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
       _commentTextController.clear();
       setState(() {});
     });
+    String type = "comment";
+    String value = "replied: $comment";
+
+    await Provider.of<UserNotifications>(context, listen: false)
+        .addPushNotification(_currentUserId, widget.video.userId, type, value,
+            widget.video.thumbnail);
   }
 
   Future<void> _deleteComment(int id) async {
@@ -103,8 +111,8 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                       color: Colors.purple,
                     ),
                     onTap: () {
-                      _addComment(widget.videoId, widget.currentUserId,
-                          _commentTextController.text);
+                      _addComment(widget.video.id, widget.currentUserId,
+                          _commentTextController.text,);
                     },
                   ),
                 ),
@@ -122,13 +130,13 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
           listen: false,
         )
             .commetByVideoId(
-              widget.videoId,
+              widget.video.id,
             )
             .length ??
         0;
     var commentData = videoCommentsCount > 0
         ? Provider.of<Comments>(context, listen: false)
-            .commetByVideoId(widget.videoId)
+            .commetByVideoId(widget.video.id)
         : null;
     return
         // FutureBuilder(
