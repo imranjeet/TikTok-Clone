@@ -1,16 +1,44 @@
-# agni_app
+<h1 align="center">
+    <br>
+    TikTok Flutter
+</h1>
+<h4 align="start">
+ This is a basic mobile application that uses the flutter framework to create a clone of the Tik Tok App.
+</h4>
 
-A new Flutter project.
+### Some Screenshots
 
-## Getting Started
+<p align="left">
+<img src="Images/1.png" width="150" hight="600" />
+<img src="Images/2.png" width="150" hight="600" />
+<img src="Images/3.png" width="150" hight="600" />
+<img src="Images/4.png" width="150" hight="600" />
+<img src="Images/5.png" width="150" hight="600" />
+<img src="Images/6.png" width="150" hight="600" />
+  
+</p>
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+## Supported Features 
+
+► Swipe Videos                                                            
+► Dynamic Video Data Source                                                                  
+► User Data (Name, Image)                                         
+► Login with Google                            
+► See videos                                              
+► Like                                                            
+► comment                                
+► messaging                                   
+► Follow                                                             
+► unfollow                                                            
+► Record new video                                                                                                 
+► Upload clips                               
+► TikTok UI                                                                 
+
+
+## Database
+
+The app obtains the data from PHP Admin Panel.
