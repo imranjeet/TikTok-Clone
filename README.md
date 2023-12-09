@@ -8,17 +8,10 @@
 
 ### Some Screenshots
 
-<p align="left">
-<img src="Images/1.png" width="150" hight="600" />
-<img src="Images/2.png" width="150" hight="600" />
-<img src="Images/3.png" width="150" hight="600" />
-<img src="Images/4.png" width="150" hight="600" />
-<img src="Images/5.png" width="150" hight="600" />
-  
-</p>
-
-
-
+![1](https://github.com/imranjeet/Exercise-App/assets/48348342/c5d7a5c3-cc4d-40ad-91bd-7a7d48265ec2)
+![2](https://github.com/imranjeet/Exercise-App/assets/48348342/3d580eed-6668-4c1a-ac1d-c80cf0bc1356)
+![3](https://github.com/imranjeet/Exercise-App/assets/48348342/0720463e-ba29-443b-b14b-118f09c48ab2)
+![4](https://github.com/imranjeet/Exercise-App/assets/48348342/bc3ba3ff-9b8e-410e-9c7d-e88c432e071b)
 
 
 ## Supported Features 
